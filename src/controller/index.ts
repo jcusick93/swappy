@@ -1,34 +1,51 @@
-// clear console on reload
+// Clear console on reload
 console.clear();
 
-// default plugin size
+// Default plugin size
 const pluginFrameSize = {
   width: 340,
   height: 370,
 };
 
-// show plugin UI
+// Show plugin UI
 figma.showUI(__html__, pluginFrameSize);
 
-// listen for messages from the UI
-figma.ui.onmessage = async (msg) => {
-  const isSomethingSelected = figma.currentPage.selection.length !== 0;
+// Define button keys
+const oldButtonKey = "b784c17874968125c12e69e55d88af8ac6041eab";
+const newButtonKey = "53b2474ef9618f2f5632964b276d160d81c70b4a";
 
-  if (msg.type === "add-outline") {
-    if (isSomethingSelected) {
-      console.log(msg);
+// Function to swap button components
+async function swapButtons() {
+  // Get all nodes on the current page that have the old button's main component key
+  const nodes = figma.currentPage.findAll(
+    (n) => n.type === "INSTANCE" && n.mainComponent?.key === oldButtonKey
+  );
 
-      const selection = figma.currentPage.selection;
+  let buttonCount = 0;
 
-      selection.forEach((node: FrameNode) => {
-        node.strokes = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
-        node.strokeWeight = Number(msg.value);
-        node.strokeAlign = "OUTSIDE";
-        node.strokeCap = "ROUND";
-        node.strokeJoin = "ROUND";
-      });
-    } else {
-      figma.notify("Select a node first");
+  // Import the new component once
+  const newComponent = await figma.importComponentByKeyAsync(newButtonKey);
+
+  // Ensure the new component is imported before proceeding
+  if (newComponent) {
+    // Iterate through all nodes and swap them with the new component
+    for (const node of nodes) {
+      if (node.type === "INSTANCE") {
+        node.swapComponent(newComponent);
+        buttonCount++;
+      }
     }
+
+    // Notify how many buttons were swapped
+    figma.notify(`Total buttons swapped: ${buttonCount}`);
+  } else {
+    figma.notify("Failed to import the new component.");
+  }
+}
+
+// Listen for messages from the UI
+figma.ui.onmessage = async (msg) => {
+  if (msg.type === "SWAP_BUTTONS") {
+    await swapButtons();
   }
 };

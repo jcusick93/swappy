@@ -1,27 +1,18 @@
-import React from "react";
-import styles from "./styles.module.scss";
+import * as React from "react";
 
-interface Props {
-  className?: string;
-  label?: string;
-  onClick: () => void;
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+  before?: React.ReactNode;
+  after?: React.ReactNode;
 }
 
-// Add parent class for sub-components
-const Input: React.FC<Props> = (props) => {
+export const Button: React.FC<ButtonProps> = ({ children, before, after, disabled, ...rest }) => {
   return (
-    <button
-      onClick={props.onClick}
-      className={`${styles.button} ${props.className}`}
-    >
-      <span>{props.label}</span>
+    <button className="button" disabled={disabled} {...rest}>
+      {before && <span className="button__before">{before}</span>}
+      {children}
+      {after && <span className="button__after">{after}</span>}
     </button>
   );
 };
 
-Input.defaultProps = {
-  className: "",
-  label: "Button",
-};
-
-export default Input;
