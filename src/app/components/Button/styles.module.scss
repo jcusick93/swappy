@@ -1,18 +1,26 @@
-// .button {
-//   height: var(--input-button-height);
-//   background-color: var(--color-primary);
-//   border-radius: var(--input-button-radius);
+.button {
+  background-color: var(--color-background-primary);
+  display: inline-flex;
+  padding: 4px 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  font-weight: 800;
+  outline: none;
+  border: none;
+  transition: background 200ms ease;
 
-//   font-size: 16px;
-//   font-weight: 700;
-//   color: var(--color-white);
 
-//   outline: none;
-//   border: none;
+  &:hover {
+    background:  #4F18B7;
+  }
 
-//   transition: background 0.1s ease-in-out;
-
-//   &:hover {
-//     background-color: var(--color-secondary);
-//   }
-// }
+  &:active {
+    background: #370B81;
+  }
+}

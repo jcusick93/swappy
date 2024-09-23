@@ -1,6 +1,6 @@
 {
   "name": "Swappy",
-"id": "1419817191639439421",
+  "id": "1419817191639439421",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",

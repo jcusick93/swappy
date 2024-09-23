@@ -8,38 +8,53 @@ const pluginFrameSize = {
 };
 
 // Show plugin UI
+// Show plugin UI
 figma.showUI(__html__, pluginFrameSize);
 
-// Define button keys
-const oldButtonKey = "b784c17874968125c12e69e55d88af8ac6041eab";
-const newButtonKey = "53b2474ef9618f2f5632964b276d160d81c70b4a";
+// Import the component map
+import { componentMap } from "../app/data"; // Adjust the path as necessary
 
 // Function to swap button components
 async function swapButtons() {
-  // Get all nodes on the current page that have the old button's main component key
-  const nodes = figma.currentPage.findAll(
-    (n) => n.type === "INSTANCE" && n.mainComponent?.key === oldButtonKey
-  );
+  // Iterate over each component in the map
+  for (const component of componentMap) {
+    const { oldParentKey, newVariantKey } = component;
 
-  let buttonCount = 0;
+    // Get all nodes on the current page that have the old button's main component key
+    const nodes = figma.currentPage.findAll(
+      (n) =>
+        n.type === "INSTANCE" &&
+        (n.mainComponent?.parent as any)?.key === oldParentKey
+    );
 
-  // Import the new component once
-  const newComponent = await figma.importComponentByKeyAsync(newButtonKey);
+    let componentCount = 0;
 
-  // Ensure the new component is imported before proceeding
-  if (newComponent) {
-    // Iterate through all nodes and swap them with the new component
-    for (const node of nodes) {
-      if (node.type === "INSTANCE") {
-        node.swapComponent(newComponent);
-        buttonCount++;
+    // Import the new component once
+    const newComponent = await figma.importComponentByKeyAsync(newVariantKey);
+
+    // Ensure the new component is imported before proceeding
+    if (newComponent) {
+      // Iterate through all nodes and swap them with the new component
+      for (const node of nodes) {
+        if (node.type === "INSTANCE") {
+          node.swapComponent(newComponent);
+          componentCount++;
+        }
       }
-    }
 
-    // Notify how many buttons were swapped
-    figma.notify(`Total buttons swapped: ${buttonCount}`);
-  } else {
-    figma.notify("Failed to import the new component.");
+      // Notify how many buttons were swapped
+      if (componentCount > 0) {
+        figma.notify(
+          `✨ ${componentCount} ${
+            componentCount === 1 ? "component" : "components"
+          } swapped`
+        );
+      } else {
+        figma.notify(`No components swapped`);
+      }
+    } else {
+      figma.notify("Failed to import the new component.");
+    }
   }
 }
 

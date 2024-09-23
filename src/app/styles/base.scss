@@ -1,14 +1,14 @@
 @import "./font-face";
 
 :root {
-  --input-button-height: 44px;
-  --input-button-radius: 6px;
-
-  --color-primary: #333;
-  --color-secondary: #30775d;
-  --color-white: #fff;
-  --color-background: #f5ffb7;
+  --color-background-primary: #733af9;
 }
+
+// .figma-light {
+// }
+
+// .figma-dark {
+// }
 
 *,
 *:before,
@@ -29,11 +29,5 @@ body {
   &::-webkit-scrollbar {
     width: 0;
     height: 0;
-  }
-
-  // Change selection color
-  ::selection {
-    background: var(--color-secondary);
-    color: var(--color-white);
   }
 }

@@ -1,0 +1,14 @@
+{
+    "editor.wordWrap": "on",
+    "javascript.preferences.quoteStyle": "double",
+    "typescript.preferences.quoteStyle": "double",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascript]": {},
+    "[typescript]": {},
+    "[json]": {},
+    "[css]": {},
+    "[scss]": {},
+    "[tsx]": {},
+    "explorer.confirmDelete": false
+}
