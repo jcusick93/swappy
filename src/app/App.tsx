@@ -1,6 +1,7 @@
 import * as React from "react";
 
-import { Button } from "./components/Button";
+import { Button } from "./components/Button/Button/Button";
+import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 
 const App = () => {
   const handleClick = () => {
@@ -25,8 +26,9 @@ const App = () => {
         flexDirection: "column",
       }}
     >
-      <h1>Total components swapped: </h1>
-      <Button onClick={handleClick}>Swap styles</Button>
+      <Button before={<RefreshOutlined16 />} onClick={handleClick}>
+        Get swapped
+      </Button>
     </div>
   );
 };

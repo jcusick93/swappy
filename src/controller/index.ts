@@ -68,6 +68,7 @@ async function swapButtons() {
   } else {
     figma.notify(`No components swapped`);
   }
+  componentCount = 0;
 }
 
 // Listen for messages from the UI

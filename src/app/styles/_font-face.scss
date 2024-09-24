@@ -1,15 +1,17 @@
 @font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 400;
-    src: url('https://rsms.me/inter/font-files/Inter-Regular.woff2') format('woff2'),
-        url('https://rsms.me/inter/font-files/Inter-Regular.woff') format('woff');
+  font-family: "Aribau Grotesk";
+  src: url("../assets/fonts/AribauGrotesk-Bold.woff2") format("woff2"),
+    url("../assets/fonts/AribauGrotesk-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 700;
-    src: url('https://rsms.me/inter/font-files/Inter-Bold.woff2') format('woff2'),
-        url('https://rsms.me/inter/font-files/Inter-Bold.woff') format('woff');
+  font-family: "Aribau Grotesk";
+  src: url("../assets//fonts/AribauGrotesk-Regular.woff2") format("woff2"),
+    url("../assets//fonts/AribauGrotesk-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
