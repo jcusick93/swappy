@@ -8,17 +8,18 @@ const pluginFrameSize = {
 };
 
 // Show plugin UI
-// Show plugin UI
 figma.showUI(__html__, pluginFrameSize);
 
 // Import the component map
 import { componentMap } from "../app/data"; // Adjust the path as necessary
+let componentCount = 0;
 
 // Function to swap button components
 async function swapButtons() {
   // Iterate over each component in the map
   for (const component of componentMap) {
-    const { oldParentKey, newVariantKey } = component;
+    const { oldParentKey, variants } = component;
+    const { newComponentKey, keywords } = variants;
 
     // Get all nodes on the current page that have the old button's main component key
     const nodes = figma.currentPage.findAll(
@@ -27,34 +28,39 @@ async function swapButtons() {
         (n.mainComponent?.parent as any)?.key === oldParentKey
     );
 
-    let componentCount = 0;
-
     // Import the new component once
-    const newComponent = await figma.importComponentByKeyAsync(newVariantKey);
+    const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
 
     // Ensure the new component is imported before proceeding
     if (newComponent) {
-      // Iterate through all nodes and swap them with the new component
+      // Iterate through all nodes and check their names
       for (const node of nodes) {
         if (node.type === "INSTANCE") {
-          node.swapComponent(newComponent);
-          componentCount++;
+          const name = node.mainComponent.name;
+
+          // Check if all keywords are present in the name
+          const allKeywordsPresent = keywords.every((keyword) =>
+            name.includes(keyword)
+          );
+
+          if (allKeywordsPresent) {
+            node.swapComponent(newComponent);
+            componentCount++;
+          }
         }
       }
-
-      // Notify how many buttons were swapped
-      if (componentCount > 0) {
-        figma.notify(
-          `✨ ${componentCount} ${
-            componentCount === 1 ? "component" : "components"
-          } swapped`
-        );
-      } else {
-        figma.notify(`No components swapped`);
-      }
-    } else {
-      figma.notify("Failed to import the new component.");
     }
+  }
+
+  // Notify the user about the swap results
+  if (componentCount > 0) {
+    figma.notify(
+      `✨ ${componentCount} ${
+        componentCount === 1 ? "component" : "components"
+      } swapped`
+    );
+  } else {
+    figma.notify(`No components swapped`);
   }
 }
 
@@ -64,3 +70,5 @@ figma.ui.onmessage = async (msg) => {
     await swapButtons();
   }
 };
+
+console.log(componentCount);
