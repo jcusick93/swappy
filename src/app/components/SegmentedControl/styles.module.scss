@@ -1,0 +1,45 @@
+.segmentedControl {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--base-color-gray-75);
+  padding: 4px;
+  border-radius: 99px;
+}
+
+.segmentedControlOption > input {
+  display: none;
+}
+
+.segmentedControlOption {
+  width: 100%;
+}
+.segmentedControlOptionContainer {
+  background-color: transparent;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 32px;
+  font-weight: 700;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  color: var(--base-color-gray-900);
+  width: 100%;
+
+  &:hover {
+    background-color: var(--base-color-gray-200);
+  }
+}
+
+.segmentedControlOption > input:checked ~ .segmentedControlOptionContainer {
+  background-color: var(--base-color-gray-900);
+  color: white;
+
+  &:hover {
+    background-color: var(--base-color-gray-800);
+  }
+}
