@@ -19,7 +19,6 @@ async function swapButtons() {
   // Iterate over each component in the map
   for (const component of componentMap) {
     const { oldParentKey, variants } = component;
-    const { newComponentKey, keywords } = variants;
 
     // Get all nodes on the current page that have the old button's main component key
     const nodes = figma.currentPage.findAll(
@@ -28,24 +27,31 @@ async function swapButtons() {
         (n.mainComponent?.parent as any)?.key === oldParentKey
     );
 
-    // Import the new component once
-    const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
+    // Iterate through each variant
+    for (const variant of variants) {
+      const { newComponentKey, keywords } = variant;
 
-    // Ensure the new component is imported before proceeding
-    if (newComponent) {
-      // Iterate through all nodes and check their names
-      for (const node of nodes) {
-        if (node.type === "INSTANCE") {
-          const name = node.mainComponent.name;
+      // Import the new component once
+      const newComponent = await figma.importComponentByKeyAsync(
+        newComponentKey
+      );
 
-          // Check if all keywords are present in the name
-          const allKeywordsPresent = keywords.every((keyword) =>
-            name.includes(keyword)
-          );
+      // Ensure the new component is imported before proceeding
+      if (newComponent) {
+        // Iterate through all nodes and check their names
+        for (const node of nodes) {
+          if (node.type === "INSTANCE" && node.mainComponent) {
+            const name = node.mainComponent.name;
 
-          if (allKeywordsPresent) {
-            node.swapComponent(newComponent);
-            componentCount++;
+            // Check if all keywords are present in the name
+            const allKeywordsPresent = keywords.every((keyword) =>
+              name.includes(keyword)
+            );
+
+            if (allKeywordsPresent) {
+              node.swapComponent(newComponent);
+              componentCount++;
+            }
           }
         }
       }
