@@ -12,8 +12,9 @@
   font-weight: 700;
   outline: none;
   border: none;
-  transition: background 200ms ease;
+  transition: background-color 200ms ease, transform 100ms ease;
   min-height: 32px;
+  cursor: pointer;
 
   &:hover {
     background-color: var(--base-color-purple-800);
@@ -21,5 +22,6 @@
 
   &:active {
     background-color: var(--base-color-purple-900);
+    transform: var(--transform-scale-pressed-subtle);
   }
 }

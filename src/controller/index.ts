@@ -26,7 +26,7 @@ async function swapButtons(state) {
     // Get nodes based on the state
     const nodes =
       state === "bySelection"
-        ? getSelectedInstances(figma.currentPage.selection) // Use the current selection
+        ? figma.currentPage.selection // Use the current selection
         : figma.currentPage.findAll(
             (n) =>
               n.type === "INSTANCE" &&

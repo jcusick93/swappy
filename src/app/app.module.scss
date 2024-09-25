@@ -1,1 +1,15 @@
 //
+.container {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  flex-direction: column;
+  height: 100vh; // Set height to 100% of the viewport height
+}
+
+.spacer {
+  flex-grow: 1;
+  height: 100%;
+  width: 100%;
+  background: var(--base-color-purple-100);
+}

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Button, SegmentedControl, SegmentedControlOption } from "./components";
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
+import styles from "./app.module.scss";
 
 const App = () => {
   const [state, setState] = React.useState("byPage"); // Set default checked option
@@ -22,7 +23,7 @@ const App = () => {
   };
 
   return (
-    <div style={{ padding: 16 }}>
+    <div className={styles.container}>
       <div>
         <SegmentedControl>
           <SegmentedControlOption
@@ -43,19 +44,10 @@ const App = () => {
           </SegmentedControlOption>
         </SegmentedControl>
       </div>
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "end",
-          flexDirection: "column",
-        }}
-      >
-        <Button before={<RefreshOutlined16 />} onClick={handleClick}>
-          Get swapped
-        </Button>
-      </div>
+      <div className={styles.spacer}></div>
+      <Button before={<RefreshOutlined16 />} onClick={handleClick}>
+        Get swapped
+      </Button>
     </div>
   );
 };
