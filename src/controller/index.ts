@@ -2,7 +2,7 @@
 import { getSelectedInstances } from "../app/utils/getSelectedInstances"; // Adjust the path as necessary
 
 // Clear console on reload
-// console.clear();
+console.clear();
 
 // Default plugin size
 const pluginFrameSize = {
@@ -19,6 +19,8 @@ let componentCount = 0;
 
 // Function to swap button components
 async function swapButtons(state) {
+  console.log("Swap state received:", state); // Debugging log
+
   // Iterate over each component in the map
   for (const component of componentMap) {
     const { oldParentKey, variants } = component;
@@ -26,12 +28,21 @@ async function swapButtons(state) {
     // Get nodes based on the state
     const nodes =
       state === "bySelection"
-        ? figma.currentPage.selection // Use the current selection
+        ? getSelectedInstances(figma.currentPage.selection) // Use the current selection
         : figma.currentPage.findAll(
             (n) =>
               n.type === "INSTANCE" &&
               (n.mainComponent?.parent as any)?.key === oldParentKey
           ); // Use findAll for "byPage"
+
+    // Log the nodes found
+    console.log("Nodes to swap:", nodes);
+
+    // If no nodes are found in selection, notify the user
+    if (state === "bySelection" && nodes.length === 0) {
+      figma.notify("No instances selected for swapping.");
+      return; // Exit the function early
+    }
 
     // Iterate through each variant
     for (const variant of variants) {
@@ -81,6 +92,7 @@ async function swapButtons(state) {
 figma.ui.onmessage = async (msg) => {
   if (msg.type === "SWAP_BUTTONS") {
     const state = msg.state; // Assuming the state is sent in the message
+    console.log("Message received from UI:", msg); // Debugging log
     await swapButtons(state);
   }
 };

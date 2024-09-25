@@ -18,32 +18,16 @@ const App = () => {
     );
   };
 
-  const handleChange = (event) => {
-    setState(event.target.value); // Update checked state on change
-  };
-
   return (
     <div className={styles.container}>
-      <div>
-        <SegmentedControl>
-          <SegmentedControlOption
-            name="selector"
-            value="byPage"
-            checked={state === "byPage"} // Check if this option is selected
-            onChange={handleChange} // Handle change event
-          >
-            By Page
-          </SegmentedControlOption>
-          <SegmentedControlOption
-            name="selector"
-            value="bySelection"
-            checked={state === "bySelection"} // Check if this option is selected
-            onChange={handleChange} // Handle change event
-          >
-            By Selection
-          </SegmentedControlOption>
-        </SegmentedControl>
-      </div>
+      <SegmentedControl value={state} onChange={(value) => setState(value)}>
+        <SegmentedControlOption value="byPage" name="selection-type">
+          By page
+        </SegmentedControlOption>
+        <SegmentedControlOption value="bySelection" name="selection-type">
+          By selection
+        </SegmentedControlOption>
+      </SegmentedControl>
       <div className={styles.spacer}></div>
       <Button before={<RefreshOutlined16 />} onClick={handleClick}>
         Get swapped

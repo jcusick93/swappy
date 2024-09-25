@@ -38,21 +38,20 @@
   z-index: 2;
   transition: all 100ms ease;
   cursor: pointer;
-
-  &:active {
-  }
 }
 
 // This selector applies when the input is not checked
 .segmentedControlOption
   > input:not(:checked):hover
   + .segmentedControlOptionContainer {
-  opacity: 0.5; // Change opacity when hovered and not checked
+  // Change opacity when hovered and not checked
+  opacity: 0.5;
 }
 
 .segmentedControlOption
   > input:not(:checked):active
   + .segmentedControlOptionContainer {
+  // Change scale when pressed and not checked
   transform: var(--transform-scale-pressed-dramatic);
 }
 
@@ -60,11 +59,10 @@
   color: white;
 }
 
-// New class for the backplate
 .backplate {
   z-index: 2;
-  position: absolute; // Position it absolutely within the segmentedControl
+  position: absolute;
   height: calc(100% - 8px);
   background-color: var(--base-color-gray-900);
-  border-radius: 99px; // Match the border radius of the options
+  border-radius: 99px;
 }

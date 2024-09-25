@@ -4,6 +4,8 @@ import styles from "./styles.module.scss";
 
 export interface SegmentedControlProps {
   children?: React.ReactNode;
+  value: string; // Use string type for the value prop
+  onChange: (value: string) => void; // Define onChange to accept a string
 }
 
 export interface SegmentedControlOption
@@ -29,14 +31,19 @@ export const SegmentedControlOption: React.FC<SegmentedControlOption> = ({
 // The parent container
 export const SegmentedControl: React.FC<SegmentedControlProps> = ({
   children,
+  value, // Destructure value from props
+  onChange, // Destructure onChange from props
 }) => {
-  const [selectedIndex, setSelectedIndex] = React.useState(0); // State to track the selected index
-
   // Get all options to calculate the width and position of the backplate
-  const options = React.Children.toArray(children);
-
+  const options = React.Children.toArray(children) as React.ReactElement[]; // Type assertion to ReactElement[]
   const backplateWidth = 100 / options.length;
   const margin = 4;
+  // Find the index of the selected option
+  const selectedIndex = options.findIndex(
+    (option) => option.props.value === value
+  );
+
+  let dymanicSpace = selectedIndex === 0 ? "4px" : "0px";
 
   return (
     <div className={styles.segmentedControl}>
@@ -47,11 +54,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
         initial={{ left: margin }}
         className={styles.backplate} // Class for styling the backplate
         animate={{
-          left:
-            selectedIndex === 0
-              ? `calc(${selectedIndex * backplateWidth}% + ${margin}px)`
-              : `${selectedIndex * backplateWidth}%`,
-          // left: `calc(${selectedIndex * backplateWidth}% + ${margin}px)`,
+          left: `calc(${selectedIndex * backplateWidth}% + ${dymanicSpace})`,
         }}
         transition={{
           type: "tween",
@@ -60,10 +63,12 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
           duration: 0.3,
         }} // Adjusted transition settings
       />
-      {React.Children.map(options, (option, index) => {
+      {React.Children.map(options, (option) => {
         return React.cloneElement(option as React.ReactElement, {
-          onChange: () => setSelectedIndex(index), // Update selected index on change
-          checked: selectedIndex === index, // Check if this option is selected
+          onChange: () => {
+            onChange(option.props.value); // Call the parent's onChange handler with the value
+          },
+          checked: option.props.value === value, // Check if this option is selected
         });
       })}
     </div>
