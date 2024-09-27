@@ -7,15 +7,19 @@ const App = () => {
   const [state, setState] = React.useState("byPage"); // Set default checked option
 
   const handleClick = () => {
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: "SWAP_BUTTONS",
-          state: state,
+    // Have to set a delay so that the onPress transition of the button can show first, otherwise it lags
+    setTimeout(() => {
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: "SWAP_BUTTONS",
+            state: state,
+          },
         },
-      },
-      "*"
-    );
+        "*"
+      );
+      // in milliseconds
+    }, 200);
   };
 
   return (
@@ -25,10 +29,13 @@ const App = () => {
           By page
         </SegmentedControlOption>
         <SegmentedControlOption value="bySelection" name="selection-type">
-          By selection
+          By selections
         </SegmentedControlOption>
       </SegmentedControl>
+
       <div className={styles.spacer}></div>
+
+      {/* Add animation class dynamically based on isAnimating */}
       <Button before={<RefreshOutlined16 />} onClick={handleClick}>
         Get swapped
       </Button>

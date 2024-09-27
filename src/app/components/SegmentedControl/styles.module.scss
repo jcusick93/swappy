@@ -3,9 +3,9 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  background-color: var(--base-color-gray-75);
+  background-color: var(--base-color-gray-100);
   padding: 4px;
-  border-radius: 99px;
+  border-radius: var(--border-radius-button);
   position: relative;
   z-index: 0;
   cursor: pointer;
@@ -23,7 +23,6 @@
 .segmentedControlOptionContainer {
   background-color: transparent;
   padding: 4px 10px;
-  border-radius: 99px;
   font-size: 14px;
   line-height: 20px;
   min-height: 32px;
@@ -36,33 +35,45 @@
   width: 100%;
   position: relative;
   z-index: 2;
-  transition: all 100ms ease;
+  transition: transform 100ms var(--animation-curve-elastic), opacity 200ms ease;
   cursor: pointer;
 }
 
-// This selector applies when the input is not checked
+/* Change opacity when hovered and not checked */
 .segmentedControlOption
   > input:not(:checked):hover
   + .segmentedControlOptionContainer {
-  // Change opacity when hovered and not checked
   opacity: 0.5;
 }
 
+/* Change scale when pressed and not checked */
 .segmentedControlOption
-  > input:not(:checked):active
-  + .segmentedControlOptionContainer {
-  // Change scale when pressed and not checked
+  > input:not(:checked)
+  + .segmentedControlOptionContainer:active {
   transform: var(--transform-scale-pressed-dramatic);
 }
 
-.segmentedControlOption > input:checked ~ .segmentedControlOptionContainer {
-  color: white;
+/* Scale the backplate when hovering over an unchecked option */
+.segmentedControl:hover:has(.segmentedControlOption > input:not(:checked):hover)
+  .backplate {
+  transform: scaleX(1.04); /* Scale the backplate */
 }
 
+/* Scale the backplate when hovering over an unchecked option */
+.segmentedControl:hover:has(
+    .segmentedControlOption > input:not(:checked):active
+  )
+  .backplate {
+  transform: scaleX(1.06); /* Scale the backplate */
+}
+
+/* Backplate styles */
 .backplate {
-  z-index: 2;
+  z-index: 1;
   position: absolute;
   height: calc(100% - 8px);
-  background-color: var(--base-color-gray-900);
-  border-radius: 99px;
+  background: #fff;
+  box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-button);
+  transition: left 180ms var(--animation-curve-decelerate), transform 200ms ease;
 }

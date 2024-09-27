@@ -25,6 +25,10 @@
   --font-family: "Aribau Grotesk", "System UI", sans-serif;
   --transform-scale-pressed-subtle: scale(0.98);
   --transform-scale-pressed-dramatic: scale(0.9);
+  --animation-curve-elastic: cubic-bezier(0.7, 0, 0.7, 1.5);
+  --animation-curve-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --animation-curve-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --border-radius-button: 8px;
 }
 
 // .figma-light {

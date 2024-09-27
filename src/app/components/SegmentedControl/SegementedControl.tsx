@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion } from "framer-motion"; // Import motion from framer-motion
+
 import styles from "./styles.module.scss";
 
 export interface SegmentedControlProps {
@@ -37,32 +37,17 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
   // Get all options to calculate the width and position of the backplate
   const options = React.Children.toArray(children) as React.ReactElement[]; // Type assertion to ReactElement[]
   const backplateWidth = 100 / options.length;
-  const margin = 4;
+
   // Find the index of the selected option
   const selectedIndex = options.findIndex(
     (option) => option.props.value === value
   );
 
+  const margin = 4;
   let dymanicSpace = selectedIndex === 0 ? "4px" : "0px";
 
   return (
     <div className={styles.segmentedControl}>
-      <motion.div
-        style={{
-          width: `calc(${backplateWidth}% - ${margin}px)`,
-        }}
-        initial={{ left: margin }}
-        className={styles.backplate} // Class for styling the backplate
-        animate={{
-          left: `calc(${selectedIndex * backplateWidth}% + ${dymanicSpace})`,
-        }}
-        transition={{
-          type: "tween",
-          stiffness: 0,
-          ease: [0.71, 0, 0.06, 1],
-          duration: 0.3,
-        }} // Adjusted transition settings
-      />
       {React.Children.map(options, (option) => {
         return React.cloneElement(option as React.ReactElement, {
           onChange: () => {
@@ -71,6 +56,16 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
           checked: option.props.value === value, // Check if this option is selected
         });
       })}
+      {/* backplate */}
+      <div
+        className={styles.backplate}
+        style={{
+          width: `calc(${backplateWidth}% - ${margin}px)`,
+          left: `calc(${selectedIndex * backplateWidth}% + ${dymanicSpace})`,
+          transformOrigin:
+            selectedIndex === options.length - 1 ? "right" : "left",
+        }}
+      />
     </div>
   );
 };
