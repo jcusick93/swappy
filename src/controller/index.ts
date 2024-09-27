@@ -6,8 +6,8 @@ console.clear();
 
 // Default plugin size
 const pluginFrameSize = {
-  width: 340,
-  height: 370,
+  width: 320,
+  height: 380,
 };
 
 // Show plugin UI
@@ -66,6 +66,9 @@ async function swapButtons(state) {
             );
 
             if (allKeywordsPresent) {
+              // Resets all changes made to old component e.g. fill or spacing changes
+              node.resetOverrides();
+              // Calls the swapComponent method
               node.swapComponent(newComponent);
               componentCount++;
             }
