@@ -1,4 +1,3 @@
-// main.ts
 import { getSelectedInstances } from "../app/utils/getSelectedInstances"; // Adjust the path as necessary
 
 // Clear console on reload
@@ -17,9 +16,28 @@ figma.showUI(__html__, pluginFrameSize);
 import { componentMap } from "../app/data"; // Adjust the path as necessary
 let componentCount = 0;
 
+// Function to get the image URL for a node
+async function getImageURL(node: SceneNode): Promise<string> {
+  try {
+    // Export node as PNG with 2x resolution
+    const image = await node.exportAsync({
+      format: "PNG",
+      constraint: { type: "SCALE", value: 2 },
+    });
+    const base64 = figma.base64Encode(image);
+    return `data:image/png;base64,${base64}`;
+  } catch (error) {
+    console.error("Error exporting image:", error);
+    return ""; // Return empty string if export fails
+  }
+}
+
 // Function to swap button components
 async function swapButtons(state) {
   console.log("Swap state received:", state); // Debugging log
+
+  // Store an array to hold the swapped component data
+  const swappedComponents = [];
 
   // Iterate over each component in the map
   for (const component of componentMap) {
@@ -66,9 +84,16 @@ async function swapButtons(state) {
             );
 
             if (allKeywordsPresent) {
-              // Resets all changes made to old component e.g. fill or spacing changes
+              // Save old and new component info before swapping
+              const oldImageSrc = await getImageURL(node);
+              const newImageSrc = await getImageURL(newComponent);
+
+              swappedComponents.push({
+                oldImage: oldImageSrc, // Get image of old component
+                newImage: newImageSrc, // Get image of new component
+              });
+
               node.resetOverrides();
-              // Calls the swapComponent method
               node.swapComponent(newComponent);
               componentCount++;
             }
@@ -85,9 +110,16 @@ async function swapButtons(state) {
         componentCount === 1 ? "component" : "components"
       } swapped`
     );
+
+    // Send back the swapped components data to the UI
+    figma.ui.postMessage({
+      type: "COMPONENT_IMAGES",
+      componentImages: swappedComponents, // Send all swapped components with image data
+    });
   } else {
     figma.notify(`No components swapped`);
   }
+
   componentCount = 0;
 }
 

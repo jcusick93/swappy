@@ -1,0 +1,39 @@
+.previewCard {
+  width: 100%;
+
+  display: flex;
+}
+
+.previewCardImgStack {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 12px;
+}
+
+.previewCardImgContainer {
+  height: 80px;
+  width: 80px;
+  background-color: var(--base-color-gray-50);
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  & > img {
+    width: 48px;
+  }
+}
+
+.previewCardCheckboxContainer {
+  height: 80px;
+  width: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.previewCard:has(input:not(:checked)) .previewCardImgStack {
+  opacity: 0.4;
+}
