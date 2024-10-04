@@ -1,6 +1,10 @@
 @import "./font-face";
 
 :root {
+  // old
+
+  --base-color-purple-50: #fcf8fd;
+  --base-color-purple-75: #f8f1fc;
   --base-color-purple-100: #f2e1ff;
   --base-color-purple-200: #debffb;
   --base-color-purple-300: #be94f1;
@@ -29,6 +33,12 @@
   --animation-curve-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
   --animation-curve-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
   --border-radius-button: 8px;
+  --font-size-small: 12px;
+  --font-size-medium: 14px;
+  --font-size-large: 16px;
+  --font-line-height-small: 16px;
+  --font-line-height-medium: 20px;
+  --font-line-height-large: 24px;
 }
 
 *,
@@ -43,7 +53,9 @@
 body {
   overflow-x: hidden;
   font-family: var(--font-family);
-  font-size: 12px;
+  color: var(--base-color-gray-900);
+  font-size: var(--font-size-medium);
+  line-height: var(--font-line-height-medium);
   margin: 0;
 
   // Hide scrollbar

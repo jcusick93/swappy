@@ -1,6 +1,7 @@
 import * as React from "react";
 import styles from "./styles.module.scss";
 import { ArrowRightOutlined16 } from "../../Icons/ArrowRightOutlined";
+import { Checkbox } from "../../Checkbox/Checkbox";
 
 export interface PreviewCardProps {
   oldImage: string;
@@ -37,7 +38,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
         </div>
       </div>
       <label className={styles.previewCardCheckboxContainer} htmlFor={id}>
-        <input type="checkbox" defaultChecked={defaultChecked} id={id} />
+        <Checkbox id={id} defaultChecked={defaultChecked} />
       </label>
     </div>
   );

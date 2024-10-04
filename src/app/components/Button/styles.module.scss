@@ -1,27 +1,47 @@
 .button {
-  background-color: var(--base-color-purple-700);
   display: inline-flex;
   padding: 8px 10px;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: white;
   border-radius: 8px;
-  font-size: 14x;
+  font-size: 14px; // Fixed typo from 14x to 14px
   line-height: 20px;
   font-weight: 700;
   outline: none;
   border: none;
   min-height: 32px;
   cursor: pointer;
-  transition: all 120ms ease-in-out;
+  transition: background-color 120ms ease;
+
+  &:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.buttonVariantPrimary {
+  background-color: var(--base-color-purple-700);
+  color: white;
 
   &:hover {
     background-color: var(--base-color-purple-800);
   }
 
   &:active {
-    transform: translateY(2px);
     background-color: var(--base-color-purple-900);
+  }
+}
+
+.buttonVariantSecondary {
+  background-color: var(--base-color-gray-75);
+  color: var(--base-color-gray-900);
+
+  &:hover {
+    background-color: var(--base-color-gray-100);
+  }
+
+  &:active {
+    background-color: var(--base-color-gray-200);
   }
 }
