@@ -4,9 +4,11 @@ import {
   SegmentedControl,
   SegmentedControlOption,
   PreviewCard,
+  Stack,
 } from "./components";
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import styles from "./app.module.scss";
+import { motion, AnimatePresence } from "framer-motion";
 
 const App = () => {
   const [state, setState] = React.useState("byPage"); // Set default checked option
@@ -53,15 +55,19 @@ const App = () => {
       <div className={styles.scrollContainer}>
         {swappedComponents.length > 0 ? (
           swappedComponents.map((component, index) => (
-            <PreviewCard
-              key={`component-${index}`}
-              oldImage={component.oldImage}
-              oldImageAlt="Old component preview"
-              newImage={component.newImage}
-              newImageAlt="New component preview"
-              id={`component-${index}`}
-              defaultChecked
-            />
+            <AnimatePresence>
+              <motion.div key={index}>
+                <PreviewCard
+                  key={`component-${index}`}
+                  oldImage={component.oldImage}
+                  oldImageAlt="Old component preview"
+                  newImage={component.newImage}
+                  newImageAlt="New component preview"
+                  id={`component-${index}`}
+                  defaultChecked
+                />
+              </motion.div>
+            </AnimatePresence>
           ))
         ) : (
           <p>No swapped components to show</p>
@@ -69,9 +75,67 @@ const App = () => {
       </div>
 
       {/* Button to trigger the component swap */}
-      <Button before={<RefreshOutlined16 />} onClick={handleClick}>
-        Get swapped
-      </Button>
+      <Stack flexDirection="row">
+        <Button
+          variant="secondary"
+          style={{ width: "100%" }}
+          onClick={handleClick}
+        >
+          {/* wrapper */}
+          <span
+            style={{
+              width: "100%",
+              height: 20,
+
+              overflow: "hidden",
+            }}
+          >
+            <Stack
+              flexDirection="column"
+              justifyContent="center"
+              style={{ position: "relative" }}
+            >
+              <motion.span
+                transition={{ type: "spring", stiffness: 400 }}
+                style={{
+                  height: 20,
+                  position: "absolute",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+                initial={{ top: 0 }}
+                animate={{ top: state === "bySelection" ? -20 : 0 }}
+              >
+                Scan page
+              </motion.span>
+              <motion.span
+                transition={{ type: "spring", stiffness: 400 }}
+                style={{
+                  height: 20,
+                  position: "absolute",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+                initial={{ top: 20 }}
+                animate={{ top: state === "bySelection" ? 0 : 20 }}
+              >
+                Scan selection
+              </motion.span>
+            </Stack>
+          </span>
+        </Button>
+        <Button
+          before={<RefreshOutlined16 />}
+          onClick={handleClick}
+          style={{ width: "100%" }}
+        >
+          Get swapped
+        </Button>
+      </Stack>
     </div>
   );
 };

@@ -32,6 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {before && <span>{before}</span>}
       {children}
+
       {after && <span>{after}</span>}
     </motion.button>
   );
