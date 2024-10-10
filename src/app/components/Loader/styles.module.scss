@@ -1,0 +1,12 @@
+.loaderDot {
+  background-color: currentColor;
+  border-radius: 99px;
+}
+
+.loaderDotContainer {
+  height: 12px;
+  width: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

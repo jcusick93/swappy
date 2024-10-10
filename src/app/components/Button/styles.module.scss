@@ -13,6 +13,7 @@
   min-height: 32px;
   cursor: pointer;
   transition: background-color 120ms ease;
+  position: relative;
 
   &:disabled {
     opacity: 0.5;
@@ -50,4 +51,8 @@
   &:active {
     background-color: var(--base-color-gray-200);
   }
+}
+
+.buttonLoading {
+  opacity: 0;
 }

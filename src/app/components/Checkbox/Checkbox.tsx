@@ -15,6 +15,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   return (
     <label htmlFor={id} className={styles.checkbox}>
       <input type="checkbox" id={id} {...rest} />
+      <div className={styles.checkboxSquare}></div>
       {children && <span>{children}</span>}
     </label>
   );

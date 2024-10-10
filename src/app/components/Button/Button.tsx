@@ -1,6 +1,8 @@
 import * as React from "react";
 import styles from "./styles.module.scss";
 import { motion, MotionProps } from "framer-motion";
+import { Loader } from "../Loader/Loader";
+import { Stack } from "../Stack/Stack";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -8,6 +10,7 @@ export interface ButtonProps
   before?: React.ReactNode;
   after?: React.ReactNode;
   variant?: "primary" | "secondary";
+  loading?: boolean;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -16,6 +19,7 @@ export const Button: React.FC<ButtonProps> = ({
   after,
   disabled,
   variant = "primary",
+  loading = false,
   ...rest
 }) => {
   return (
@@ -27,13 +31,20 @@ export const Button: React.FC<ButtonProps> = ({
           ? styles.buttonVariantPrimary
           : styles.buttonVariantSecondary
       }`}
-      disabled={disabled} // Explicitly passing disabled
+      disabled={disabled || loading} // Explicitly passing disabled
       {...(rest as unknown as MotionProps)}
     >
-      {before && <span>{before}</span>}
-      {children}
-
-      {after && <span>{after}</span>}
+      {loading && <Loader style={{ position: "absolute", height: "100%" }} />}
+      <Stack
+        gap="4px"
+        justifyContent="center"
+        alignItems="center"
+        style={{ opacity: loading ? 0 : 1, width: "100%" }}
+      >
+        {before && <span>{before}</span>}
+        {children}
+        {after && <span>{after}</span>}
+      </Stack>
     </motion.button>
   );
 };

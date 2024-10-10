@@ -14,12 +14,19 @@ figma.showUI(__html__, pluginFrameSize);
 
 // Import the component map
 import { componentMap } from "../app/data"; // Adjust the path as necessary
-let componentCount = 0;
+
+// Declare a global variable to store scanned components
+let scannedComponents: {
+  node: SceneNode;
+  newComponentKey: string;
+  checked: boolean;
+  oldImage?: string; // Optional: to hold old image URL if needed
+  newImage?: string; // Optional: to hold new image URL if needed
+}[] = [];
 
 // Function to get the image URL for a node
 async function getImageURL(node: SceneNode): Promise<string> {
   try {
-    // Export node as PNG with 2x resolution
     const image = await node.exportAsync({
       format: "PNG",
       constraint: { type: "SCALE", value: 2 },
@@ -28,108 +35,132 @@ async function getImageURL(node: SceneNode): Promise<string> {
     return `data:image/png;base64,${base64}`;
   } catch (error) {
     console.error("Error exporting image:", error);
-    return ""; // Return empty string if export fails
+    return "";
   }
 }
 
-// Function to swap button components
-async function swapButtons(state) {
-  console.log("Swap state received:", state); // Debugging log
+// Function to scan components (byPage or bySelection)
+async function scanComponents(state: string) {
+  console.log("Scan state received:", state);
 
-  // Store an array to hold the swapped component data
-  const swappedComponents = [];
+  // Reset scannedComponents array before scanning
+  scannedComponents = [];
 
-  // Iterate over each component in the map
   for (const component of componentMap) {
     const { oldParentKey, variants } = component;
 
-    // Get nodes based on the state
     const nodes =
       state === "bySelection"
-        ? getSelectedInstances(figma.currentPage.selection) // Use the current selection
+        ? getSelectedInstances(figma.currentPage.selection)
         : figma.currentPage.findAll(
             (n) =>
               n.type === "INSTANCE" &&
               (n.mainComponent?.parent as any)?.key === oldParentKey
-          ); // Use findAll for "byPage"
+          );
 
-    // Log the nodes found
-    console.log("Nodes to swap:", nodes);
-
-    // If no nodes are found in selection, notify the user
     if (state === "bySelection" && nodes.length === 0) {
-      figma.notify("No instances selected for swapping.");
-      return; // Exit the function early
+      figma.notify("No instances selected for scanning.");
+      return;
     }
 
-    // Iterate through each variant
     for (const variant of variants) {
       const { newComponentKey, keywords } = variant;
-
-      // Import the new component once
       const newComponent = await figma.importComponentByKeyAsync(
         newComponentKey
       );
 
-      // Ensure the new component is imported before proceeding
       if (newComponent) {
-        // Iterate through all nodes and check their names
         for (const node of nodes) {
           if (node.type === "INSTANCE" && node.mainComponent) {
             const name = node.mainComponent.name;
-
-            // Check if all keywords are present in the name
             const allKeywordsPresent = keywords.every((keyword) =>
               name.includes(keyword)
             );
 
             if (allKeywordsPresent) {
-              // Save old and new component info before swapping
               const oldImageSrc = await getImageURL(node);
               const newImageSrc = await getImageURL(newComponent);
 
-              swappedComponents.push({
-                oldImage: oldImageSrc, // Get image of old component
-                newImage: newImageSrc, // Get image of new component
+              // Add component with old/new images and checked state to scannedComponents
+              scannedComponents.push({
+                oldImage: oldImageSrc,
+                newImage: newImageSrc,
+                node,
+                newComponentKey,
+                checked: true, // Default checked state
               });
-
-              node.resetOverrides();
-              node.swapComponent(newComponent);
-              componentCount++;
             }
           }
         }
       }
     }
+    figma.ui.postMessage({ type: "SCAN_COMPLETE" });
   }
+
+  figma.ui.postMessage({
+    type: "COMPONENT_IMAGES",
+    componentImages: scannedComponents.map(
+      ({ oldImage, newImage, checked }) => ({
+        oldImage,
+        newImage,
+        checked,
+      })
+    ),
+  });
+}
+
+// Function to swap components based on checked states
+async function swapButtons(checkedStates: boolean[]) {
+  console.log("Swapping components...");
+
+  // Filter out components that are checked
+  const toSwapComponents = scannedComponents.filter((_, index) => {
+    return checkedStates[index];
+  });
+
+  // Loop through the components to swap
+  for (const component of toSwapComponents) {
+    const { node, newComponentKey } = component;
+
+    const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
+    if (newComponent) {
+      // Cast the node to InstanceNode before calling resetOverrides and swapComponent
+      if (node.type === "INSTANCE") {
+        const instanceNode = node as InstanceNode;
+        instanceNode.resetOverrides();
+        instanceNode.swapComponent(newComponent);
+      } else {
+        console.warn(`Node is not an instance: ${node.name}`);
+      }
+    }
+  }
+
+  // Update scannedComponents to only include unchecked items
+  scannedComponents = scannedComponents.filter(
+    (_, index) => !checkedStates[index]
+  );
 
   // Notify the user about the swap results
-  if (componentCount > 0) {
-    figma.notify(
-      `✨ ${componentCount} ${
-        componentCount === 1 ? "component" : "components"
-      } swapped`
-    );
-
-    // Send back the swapped components data to the UI
-    figma.ui.postMessage({
-      type: "COMPONENT_IMAGES",
-      componentImages: swappedComponents, // Send all swapped components with image data
-    });
-  } else {
-    figma.notify(`No components swapped`);
-  }
-
-  componentCount = 0;
+  const swappedCount = toSwapComponents.length;
+  figma.notify(
+    swappedCount > 0
+      ? `✨ ${swappedCount} component${swappedCount === 1 ? "" : "s"} swapped`
+      : "No components swapped"
+  );
+  // Sends a message to the UI that the swap was completed
+  figma.ui.postMessage({ type: "SWAP_COMPLETE" });
 }
 
 // Listen for messages from the UI
 figma.ui.onmessage = async (msg) => {
-  if (msg.type === "SWAP_BUTTONS") {
-    const state = msg.state; // Assuming the state is sent in the message
-    console.log("Message received from UI:", msg); // Debugging log
-    await swapButtons(state);
+  if (msg.type === "SCAN_COMPONENTS") {
+    const state = msg.scanType;
+    console.log("Message received from UI:", msg);
+    await scanComponents(state);
+  } else if (msg.type === "SWAP_COMPONENTS") {
+    console.log("Swapping components...");
+    await swapButtons(msg.checkedStates);
   }
 };
 
-console.log(componentCount);
+console.log(scannedComponents);

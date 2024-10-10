@@ -37,9 +37,9 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
           <img src={newImage} alt={newImageAlt} />
         </div>
       </div>
-      <label className={styles.previewCardCheckboxContainer} htmlFor={id}>
+      <div className={styles.previewCardCheckboxContainer}>
         <Checkbox id={id} defaultChecked={defaultChecked} />
-      </label>
+      </div>
     </div>
   );
 };
