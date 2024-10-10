@@ -1,7 +1,7 @@
 import * as React from "react";
 import styles from "./styles.module.scss";
 import { motion, MotionProps } from "framer-motion";
-import { Loader } from "../Loader/Loader";
+
 import { Stack } from "../Stack/Stack";
 
 export interface ButtonProps
@@ -34,12 +34,11 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled || loading} // Explicitly passing disabled
       {...(rest as unknown as MotionProps)}
     >
-      {loading && <Loader style={{ position: "absolute", height: "100%" }} />}
       <Stack
         gap="4px"
         justifyContent="center"
         alignItems="center"
-        style={{ opacity: loading ? 0 : 1, width: "100%" }}
+        style={{ width: "100%" }}
       >
         {before && <span>{before}</span>}
         {children}

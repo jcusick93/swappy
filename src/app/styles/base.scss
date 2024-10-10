@@ -2,7 +2,6 @@
 
 :root {
   // old
-
   --base-color-purple-50: #fcf8fd;
   --base-color-purple-75: #f8f1fc;
   --base-color-purple-100: #f2e1ff;
@@ -39,6 +38,15 @@
   --font-line-height-small: 16px;
   --font-line-height-medium: 20px;
   --font-line-height-large: 24px;
+
+  // colors
+  --color-divider-low: var(--base-color-gray-75);
+  --color-primary-default: ;
+  --color-secondary-default: ;
+
+  // spacing
+  --spacing-app-x: 16px;
+  --spacing-app-y: 8px;
 }
 
 *,
@@ -63,4 +71,19 @@ body {
     width: 0;
     height: 0;
   }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 18px;
+  line-height: 24px;
+  margin-bottom: 4px;
 }

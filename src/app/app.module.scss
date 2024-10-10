@@ -1,27 +1,9 @@
-//
+// the app's root element
 .container {
   display: flex;
   justify-content: center;
   flex-direction: column;
   height: 100vh; // Set height to 100% of the viewport height
-}
-
-.spacer {
-  flex-grow: 1;
-  height: 100%;
-  width: 100%;
-  background: var(--base-color-purple-100);
-}
-
-.scrollContainer {
-  height: 100%;
-  flex-grow: 1;
-  overflow: scroll;
-  padding-top: 12px;
-  padding-bottom: 12px;
-  gap: 12px;
-  display: flex;
-  flex-direction: column;
 }
 
 // animated button label wrapper
@@ -39,4 +21,22 @@
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+
+.overlay {
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  left: 0;
+  flex-direction: column;
+  padding: var(--spacing-app-x) var(--spacing-app-y);
+  text-align: center;
+  backdrop-filter: blur(4px);
 }

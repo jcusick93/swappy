@@ -1,12 +1,34 @@
-.loaderDot {
-  background-color: currentColor;
-  border-radius: 99px;
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.loaderDotContainer {
-  height: 12px;
-  width: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
+.svg {
+  animation-name: rotate;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+.svgTail {
+  animation: dash 1.5s ease infinite;
+  z-index: 9;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
 }

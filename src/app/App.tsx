@@ -5,8 +5,9 @@ import {
   SegmentedControlOption,
   PreviewCard,
   Stack,
-  Footer,
+  Header,
   Body,
+  Footer,
 } from "./components";
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import styles from "./app.module.scss";
@@ -24,6 +25,8 @@ const App = () => {
   const [swapLoading, setSwapLoading] = React.useState(false);
   // Sets loading for Scanning button
   const [scanLoading, setScanLoading] = React.useState(false);
+  // Sets the state for when the scan button has been pressed
+  const [nodesScanned, setNodesScanned] = React.useState(false);
 
   const buttonLabelTransition = {
     type: "tween",
@@ -55,6 +58,7 @@ const App = () => {
     // Trigger the scan based on current state (byPage or bySelection)
     setTimeout(() => {
       setScanLoading(true);
+      setNodesScanned(true);
       parent.postMessage(
         {
           pluginMessage: {
@@ -107,19 +111,30 @@ const App = () => {
 
   return (
     <div className={styles.container}>
-      {/* Segmented control for selecting by page or by selection */}
-      <SegmentedControl value={state} onChange={(value) => setState(value)}>
-        <SegmentedControlOption value="byPage" name="selection-type">
-          By page
-        </SegmentedControlOption>
-        <SegmentedControlOption value="bySelection" name="selection-type">
-          By selection
-        </SegmentedControlOption>
-      </SegmentedControl>
+      <Header>
+        {/* Segmented control for selecting by page or by selection */}
+        <SegmentedControl value={state} onChange={(value) => setState(value)}>
+          <SegmentedControlOption value="byPage" name="selection-type">
+            By page
+          </SegmentedControlOption>
+          <SegmentedControlOption value="bySelection" name="selection-type">
+            By selection
+          </SegmentedControlOption>
+        </SegmentedControl>
+      </Header>
 
       {/* Scrollable container for PreviewCards */}
       <Body>
         <Stack flexDirection="column" gap="8px">
+          {swapLoading && (
+            <div className={styles.overlay}>
+              <div>
+                <img style={{ height: 96 }} src={Tourchie} alt="Loading..." />
+              </div>
+              <h1>Swapping</h1>
+              <span>Just a momement, components are being swapped...</span>
+            </div>
+          )}
           {scannedComponents.length > 0 ? (
             scannedComponents.map((component, index) => (
               <AnimatePresence key={index}>
@@ -149,24 +164,29 @@ const App = () => {
             ))
           ) : (
             <div>
-              {scanLoading ? (
-                <Stack
-                  flexDirection="column"
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <div>
-                    <img
-                      style={{ height: 96 }}
-                      src={Tourchie}
-                      alt="Loading..."
-                    />
-                  </div>
-
-                  <span>Hang tight! Scanning your components now...</span>
-                </Stack>
+              {nodesScanned ? (
+                scanLoading ? (
+                  <Stack
+                    style={{ textAlign: "center" }}
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <div>
+                      <img
+                        style={{ height: 96 }}
+                        src={Tourchie}
+                        alt="Loading..."
+                      />
+                    </div>
+                    <h1>Scanning</h1>
+                    <span>Hang tight! Scanning your components now...</span>
+                  </Stack>
+                ) : (
+                  <span>No components found</span>
+                )
               ) : (
-                <p>No components found</p>
+                <span>Let's get scanning!</span>
               )}
             </div>
           )}
@@ -177,6 +197,7 @@ const App = () => {
 
       <Footer>
         <Button
+          disabled={scanLoading}
           variant="secondary"
           style={{ width: "100%" }}
           onClick={handleScanClick} // Trigger the scan when clicked
@@ -218,11 +239,11 @@ const App = () => {
         <Button
           loading={swapLoading}
           before={<RefreshOutlined16 />}
-          disabled={scannedComponents.length === 0 || swapLoading} // Disable if no components
+          disabled={scannedComponents.length === 0} // Disable if no components
           onClick={handleSwapClick} // Trigger the swap when clicked
           style={{ width: "100%" }}
         >
-          {swapLoading ? "Loading" : "Get swapped"}
+          Get swapped
         </Button>
       </Footer>
     </div>

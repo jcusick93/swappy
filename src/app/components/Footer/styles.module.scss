@@ -1,7 +1,7 @@
 .footer {
   background-color: white;
-  border-top: solid 1px var(--base-color-gray-75);
-  padding: 16px;
+  border-top: solid 1px var(--color-divider-low);
+  padding: var(--spacing-app-y) var(--spacing-app-x);
   display: flex;
   justify-content: center;
   align-items: center;
