@@ -3,30 +3,32 @@ import {
   Button,
   SegmentedControl,
   SegmentedControlOption,
-  PreviewCard,
-  Stack,
   Header,
   Body,
   Footer,
+  Stack,
+  Placeholder,
 } from "./components";
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import styles from "./app.module.scss";
 import { motion, AnimatePresence } from "framer-motion";
-import Tourchie from "./assets/images/happy_torchie.gif";
+import TorchieGif from "./assets/images/happy_torchie.gif";
+import TorchieSurprised from "./assets/images/surprised_torchie.png";
+import TorchieCool from "./assets/images/cool_torchie.png";
 
 const App = () => {
   // Set default checked option
   const [state, setState] = React.useState("byPage");
-  // Store components with old/new images
+  // Store components with old/new images and checked state
   const [scannedComponents, setScannedComponents] = React.useState([]);
-  // To track checked components
-  const [checkedComponents, setCheckedComponents] = React.useState([]);
   // Sets loading for Swapped button
   const [swapLoading, setSwapLoading] = React.useState(false);
   // Sets loading for Scanning button
   const [scanLoading, setScanLoading] = React.useState(false);
   // Sets the state for when the scan button has been pressed
   const [nodesScanned, setNodesScanned] = React.useState(false);
+  // Store previously checked components before swap
+  const [previouslyChecked, setPreviouslyChecked] = React.useState([]);
 
   const buttonLabelTransition = {
     type: "tween",
@@ -41,24 +43,34 @@ const App = () => {
     window.onmessage = (event) => {
       const { pluginMessage } = event.data;
       if (pluginMessage.type === "COMPONENT_IMAGES") {
-        setScannedComponents(pluginMessage.componentImages); // Set scanned components
-        // Initialize checked components array
-        setCheckedComponents(
-          new Array(pluginMessage.componentImages.length).fill(true)
+        // Set scanned components, default all to checked
+        setScannedComponents(
+          pluginMessage.componentImages.map((component) => ({
+            ...component,
+            isChecked: true, // Default checked state
+          }))
         );
       } else if (pluginMessage.type === "SWAP_COMPLETE") {
+        // Remove previously checked components after swap is complete
+        setScannedComponents((prev) =>
+          prev.filter((_, index) => !previouslyChecked.includes(index))
+        );
+        setPreviouslyChecked([]); // Reset checked indexes after swap
         setSwapLoading(false); // Set loading to false when swap is complete
       } else if (pluginMessage.type === "SCAN_COMPLETE") {
-        setScanLoading(false);
+        setTimeout(() => {
+          setScanLoading(false);
+        }, 1000);
       }
     };
-  }, []);
+  }, [previouslyChecked]);
 
   const handleScanClick = () => {
     // Trigger the scan based on current state (byPage or bySelection)
     setTimeout(() => {
       setScanLoading(true);
       setNodesScanned(true);
+      setScannedComponents([]);
       parent.postMessage(
         {
           pluginMessage: {
@@ -73,39 +85,45 @@ const App = () => {
   };
 
   const handleSwapClick = () => {
+    // Before running the swap, capture the currently checked components
+    const currentlyCheckedIndexes = scannedComponents
+      .map((component, index) => (component.isChecked ? index : null))
+      .filter((index) => index !== null);
+
+    setPreviouslyChecked(currentlyCheckedIndexes); // Store checked indexes
+    setSwapLoading(true); // Set loading to true for the swap
     // Send message to swap the selected components
-    setTimeout(() => {
-      setSwapLoading(true);
-      parent.postMessage(
-        {
-          pluginMessage: {
-            type: "SWAP_COMPONENTS",
-            checkedStates: checkedComponents, // Send the checked states
-          },
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: "SWAP_COMPONENTS",
+          checkedStates: scannedComponents.map(
+            (component) => component.isChecked
+          ), // Send the checked states
         },
-        "*"
-      );
-      // timeout is needed to avoid button from "sticking"
-    }, 400);
+      },
+      "*"
+    );
   };
 
   const handleCheckboxChange = (index) => {
     // Update the checked state of the specific component
-    setCheckedComponents((prevChecked) => {
-      const updatedChecked = [...prevChecked];
-      updatedChecked[index] = !updatedChecked[index]; // Toggle the checked state
+    setScannedComponents((prevComponents) => {
+      const updatedComponents = [...prevComponents];
+      updatedComponents[index].isChecked = !updatedComponents[index].isChecked; // Toggle the checked state
 
-      // Update the scannedComponents with the new checked state
-      setScannedComponents((prevComponents) =>
-        prevComponents.map((component, i) => {
-          if (i === index) {
-            return { ...component, checked: updatedChecked[i] }; // Update checked property
-          }
-          return component;
-        })
+      // Post updated scannedComponents to Figma
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: "UPDATE_SCANNED_COMPONENTS",
+            updatedComponents: updatedComponents,
+          },
+        },
+        "*"
       );
 
-      return updatedChecked;
+      return updatedComponents;
     });
   };
 
@@ -114,10 +132,18 @@ const App = () => {
       <Header>
         {/* Segmented control for selecting by page or by selection */}
         <SegmentedControl value={state} onChange={(value) => setState(value)}>
-          <SegmentedControlOption value="byPage" name="selection-type">
+          <SegmentedControlOption
+            value="byPage"
+            name="selection-type"
+            disabled={scanLoading || swapLoading}
+          >
             By page
           </SegmentedControlOption>
-          <SegmentedControlOption value="bySelection" name="selection-type">
+          <SegmentedControlOption
+            value="bySelection"
+            name="selection-type"
+            disabled={scanLoading || swapLoading}
+          >
             By selection
           </SegmentedControlOption>
         </SegmentedControl>
@@ -125,21 +151,21 @@ const App = () => {
 
       {/* Scrollable container for PreviewCards */}
       <Body>
-        <Stack flexDirection="column" gap="8px">
-          {swapLoading && (
-            <div className={styles.overlay}>
-              <div>
-                <img style={{ height: 96 }} src={Tourchie} alt="Loading..." />
-              </div>
-              <h1>Swapping</h1>
-              <span>Just a momement, components are being swapped...</span>
-            </div>
-          )}
-          {scannedComponents.length > 0 ? (
-            scannedComponents.map((component, index) => (
+        {swapLoading && (
+          <div className={styles.overlay}>
+            <Placeholder
+              imageSrc={TorchieGif}
+              imageAlt="Swapping"
+              title="Swapping"
+              description="Just a moment components are being swapped..."
+            />
+          </div>
+        )}
+        {scannedComponents.length > 0 ? (
+          <Stack flexDirection="column" gap="4px">
+            {scannedComponents.map((component, index) => (
               <AnimatePresence key={index}>
                 <motion.div
-                  key={index}
                   transition={{
                     type: "tween",
                     ease: "easeInOut",
@@ -149,55 +175,56 @@ const App = () => {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 4, opacity: 0.5 }}
                 >
-                  <PreviewCard
-                    oldImage={component.oldImage}
-                    oldImageAlt="Old component preview"
-                    newImage={component.newImage}
-                    newImageAlt="New component preview"
-                    id={`component-${index}`}
-                    defaultChecked
-                    // checked={component.checked} // Use the checked state from component
-                    onChange={() => handleCheckboxChange(index)} // Handle checkbox change
-                  />
+                  <div key={component.index}>
+                    <img src={component.oldImage} style={{ height: 32 }} />
+                    <img src={component.newImage} style={{ height: 32 }} />
+                    <input
+                      id={component.index}
+                      type="checkbox"
+                      checked={component.isChecked}
+                      onChange={() => handleCheckboxChange(index)}
+                    />
+                  </div>
                 </motion.div>
               </AnimatePresence>
-            ))
-          ) : (
-            <div>
-              {nodesScanned ? (
-                scanLoading ? (
-                  <Stack
-                    style={{ textAlign: "center" }}
-                    flexDirection="column"
-                    justifyContent="center"
-                    alignItems="center"
-                  >
-                    <div>
-                      <img
-                        style={{ height: 96 }}
-                        src={Tourchie}
-                        alt="Loading..."
-                      />
-                    </div>
-                    <h1>Scanning</h1>
-                    <span>Hang tight! Scanning your components now...</span>
-                  </Stack>
-                ) : (
-                  <span>No components found</span>
-                )
+            ))}
+          </Stack>
+        ) : (
+          <React.Fragment>
+            {nodesScanned ? (
+              scanLoading ? (
+                <Placeholder
+                  imageSrc={TorchieGif}
+                  imageAlt="Scanning"
+                  title="Scanning"
+                  description="Hang tight! Scanning your components now..."
+                />
               ) : (
-                <span>Let's get scanning!</span>
-              )}
-            </div>
-          )}
-        </Stack>
+                <Placeholder
+                  imageSrc={TorchieSurprised}
+                  imageAlt="Noting found"
+                  title="Noting found"
+                  description="No Beacon components were found."
+                />
+              )
+            ) : (
+              <Placeholder
+                imageSrc={TorchieCool}
+                imageAlt="Start your scan"
+                title="Start your scan"
+                description={`Ready to update? Scan your ${
+                  state === "byPage" ? "page" : "selection"
+                }`}
+              />
+            )}
+          </React.Fragment>
+        )}
       </Body>
 
       {/* Button to trigger the component scan */}
-
       <Footer>
         <Button
-          disabled={scanLoading}
+          disabled={scanLoading || swapLoading}
           variant="secondary"
           style={{ width: "100%" }}
           onClick={handleScanClick} // Trigger the scan when clicked
@@ -235,13 +262,14 @@ const App = () => {
           </span>
         </Button>
 
-        {/* Button to trigger the component swap */}
+        {/* Button to trigger swapping the components */}
         <Button
-          loading={swapLoading}
-          before={<RefreshOutlined16 />}
-          disabled={scannedComponents.length === 0} // Disable if no components
-          onClick={handleSwapClick} // Trigger the swap when clicked
+          disabled={
+            scanLoading || swapLoading || scannedComponents.length === 0
+          }
+          variant="primary"
           style={{ width: "100%" }}
+          onClick={handleSwapClick} // Trigger the swap when clicked
         >
           Get swapped
         </Button>

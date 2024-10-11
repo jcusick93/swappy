@@ -12,17 +12,19 @@ export interface SegmentedControlOption
   extends React.InputHTMLAttributes<HTMLInputElement> {
   children?: React.ReactNode;
   before?: React.ReactNode;
+  disabled?: boolean;
 }
 
 // The option that goes inside the SegmentedControl
 export const SegmentedControlOption: React.FC<SegmentedControlOption> = ({
   children,
   before,
+  disabled,
   ...rest
 }) => {
   return (
     <label className={styles.segmentedControlOption}>
-      <input type="radio" {...rest} />
+      <input type="radio" disabled={disabled} {...rest} />
       <span className={styles.segmentedControlOptionContainer}>{children}</span>
     </label>
   );

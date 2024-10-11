@@ -59,6 +59,7 @@ async function scanComponents(state: string) {
           );
 
     if (state === "bySelection" && nodes.length === 0) {
+      figma.ui.postMessage({ type: "SCAN_COMPLETE" });
       figma.notify("No instances selected for scanning.");
       return;
     }
@@ -94,23 +95,23 @@ async function scanComponents(state: string) {
         }
       }
     }
+
+    // Sends message to update state in App
+    figma.ui.postMessage({
+      type: "COMPONENT_IMAGES",
+      componentImages: scannedComponents.map(
+        ({ oldImage, newImage, checked }) => ({
+          oldImage,
+          newImage,
+          checked, // Include the checked state
+        })
+      ),
+    });
     figma.ui.postMessage({ type: "SCAN_COMPLETE" });
   }
-
-  figma.ui.postMessage({
-    type: "COMPONENT_IMAGES",
-    componentImages: scannedComponents.map(
-      ({ oldImage, newImage, checked }) => ({
-        oldImage,
-        newImage,
-        checked,
-      })
-    ),
-  });
 }
 
-// Function to swap components based on checked states
-async function swapButtons(checkedStates: boolean[]) {
+async function swapComponents(checkedStates: boolean[]) {
   console.log("Swapping components...");
 
   // Filter out components that are checked
@@ -124,7 +125,6 @@ async function swapButtons(checkedStates: boolean[]) {
 
     const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
     if (newComponent) {
-      // Cast the node to InstanceNode before calling resetOverrides and swapComponent
       if (node.type === "INSTANCE") {
         const instanceNode = node as InstanceNode;
         instanceNode.resetOverrides();
@@ -140,15 +140,51 @@ async function swapButtons(checkedStates: boolean[]) {
     (_, index) => !checkedStates[index]
   );
 
-  // Notify the user about the swap results
+  // Post the updated scannedComponents back to the UI
+  figma.ui.postMessage({
+    type: "UPDATE_SCANNED_COMPONENTS",
+    updatedComponents: scannedComponents.map((component) => ({
+      oldImage: component.oldImage,
+      newImage: component.newImage,
+      checked: false, // or keep it as is, based on your logic
+    })),
+  });
+
+  // Post the indexes of swapped components back to the UI
+  const swappedIndexes = scannedComponents
+    .map((_, index) => index)
+    .filter((index) => checkedStates[index]);
+
+  // Sends a message to the UI indicating which components were swapped
+  figma.ui.postMessage({
+    type: "COMPONENTS_SWAPPED",
+    swappedIndexes,
+  });
+
   const swappedCount = toSwapComponents.length;
   figma.notify(
     swappedCount > 0
       ? `✨ ${swappedCount} component${swappedCount === 1 ? "" : "s"} swapped`
       : "No components swapped"
   );
+
   // Sends a message to the UI that the swap was completed
   figma.ui.postMessage({ type: "SWAP_COMPLETE" });
+}
+
+// Function to update scanned components based on the new checked states
+function updateScannedComponents(updatedComponents: any) {
+  console.log("Updating scanned components with new checked states...");
+
+  // Update the global scannedComponents with the new checked states
+  scannedComponents = updatedComponents.map((component: any, index: number) => {
+    return {
+      ...scannedComponents[index],
+      checked: component.checked, // Update checked state
+    };
+  });
+
+  console.log("Updated scanned components:", scannedComponents);
 }
 
 // Listen for messages from the UI
@@ -159,7 +195,10 @@ figma.ui.onmessage = async (msg) => {
     await scanComponents(state);
   } else if (msg.type === "SWAP_COMPONENTS") {
     console.log("Swapping components...");
-    await swapButtons(msg.checkedStates);
+    await swapComponents(msg.checkedStates);
+  } else if (msg.type === "UPDATE_SCANNED_COMPONENTS") {
+    console.log("Received updated scanned components from UI...");
+    updateScannedComponents(msg.updatedComponents);
   }
 };
 

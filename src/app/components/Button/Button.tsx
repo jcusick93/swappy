@@ -1,7 +1,6 @@
 import * as React from "react";
 import styles from "./styles.module.scss";
 import { motion, MotionProps } from "framer-motion";
-
 import { Stack } from "../Stack/Stack";
 
 export interface ButtonProps

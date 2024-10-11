@@ -11,8 +11,18 @@
   cursor: pointer;
 }
 
+.segmentedControl:has(.segmentedControlOption > input:disabled) {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .segmentedControlOption > input {
   display: none;
+}
+
+input:disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .segmentedControlOption {
