@@ -1,6 +1,6 @@
 import * as React from "react";
 import styles from "./styles.module.scss";
-import { ArrowRightOutlined16 } from "../../Icons/ArrowRightOutlined";
+
 import { Checkbox } from "../../Checkbox/Checkbox";
 
 export interface PreviewCardProps {
@@ -31,7 +31,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
         <div className={styles.previewCardImgContainer}>
           <img src={oldImage} alt={oldImageAlt} />
         </div>
-        <ArrowRightOutlined16 />
+        {/* <ArrowRightOutlined16 /> */}
         {/* image container 2 */}
         <div className={styles.previewCardImgContainer}>
           <img src={newImage} alt={newImageAlt} />

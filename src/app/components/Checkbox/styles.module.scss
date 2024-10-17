@@ -1,11 +1,38 @@
 .checkbox {
+  display: inline-flex;
+  cursor: pointer;
 }
 
 .checkbox > input {
+  display: none;
 }
 
-// .checkboxSquare {
-//   height: 16px;
-//   width: 16px;
-//   border: solid 1px var(--base-color-gray-200);
-// }
+.checkboxSquare {
+  height: 18px;
+  width: 18px;
+  border: solid 1px var(--color-divider-medium);
+  background-color: white;
+  border-radius: 6px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkbox:has(input:checked) .checkboxSquare {
+  background-color: var(--color-primary-default);
+  border-color: var(--color-primary-default);
+
+  &:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+  }
+
+  &:active {
+    background-color: var(--color-primary-pressed);
+    border-color: var(--color-primary-pressed);
+  }
+}
+
+.checkbox:has(input:not(:checked)) .checkboxSquare {
+}

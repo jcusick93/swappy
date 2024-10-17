@@ -1,10 +1,10 @@
 import * as React from "react";
 import styles from "./styles.module.scss";
+import { CheckmarkOutlined16 } from "../Icons/CheckmarkOutlined16";
 
 export interface CheckboxProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   children?: React.ReactNode;
-  id: string;
 }
 
 export const Checkbox: React.FC<CheckboxProps> = ({
@@ -13,9 +13,11 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   ...rest
 }) => {
   return (
-    <label htmlFor={id} className={styles.checkbox}>
-      <input type="checkbox" id={id} {...rest} />
-      <div className={styles.checkboxSquare}></div>
+    <label className={styles.checkbox}>
+      <input type="checkbox" id={id} {...rest}></input>
+      <div className={styles.checkboxSquare}>
+        <CheckmarkOutlined16 />
+      </div>
       {children && <span>{children}</span>}
     </label>
   );

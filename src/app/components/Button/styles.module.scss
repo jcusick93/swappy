@@ -28,31 +28,27 @@
 }
 
 .buttonVariantPrimary {
-  background-color: var(--base-color-purple-700);
+  background-color: var(--color-primary-default);
   color: white;
 
   &:hover {
-    background-color: var(--base-color-purple-800);
+    background-color: var(--color-primary-hover);
   }
 
   &:active {
-    background-color: var(--base-color-purple-900);
+    background-color: var(--color-primary-pressed);
   }
 }
 
 .buttonVariantSecondary {
-  background-color: var(--base-color-gray-75);
-  color: var(--base-color-gray-900);
+  background-color: var(--color-secondary-default);
+  color: var(--color-text-high);
 
   &:hover {
-    background-color: var(--base-color-gray-100);
+    background-color: var(--color-secondary-hover);
   }
 
   &:active {
-    background-color: var(--base-color-gray-200);
+    background-color: var(--color-secondary-pressed);
   }
-}
-
-.buttonLoading {
-  opacity: 0;
 }

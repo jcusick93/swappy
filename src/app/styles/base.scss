@@ -41,8 +41,15 @@
 
   // colors
   --color-divider-low: var(--base-color-gray-75);
-  --color-primary-default: ;
-  --color-secondary-default: ;
+  --color-divider-medium: var(--base-color-gray-300);
+  --color-primary-default: var(--base-color-purple-600);
+  --color-primary-hover: var(--base-color-purple-700);
+  --color-primary-pressed: var(--base-color-purple-800);
+  --color-secondary-default: var(--base-color-gray-75);
+  --color-secondary-hover: var(--base-color-gray-100);
+  --color-secondary-pressed: var(--base-color-gray-200);
+  --color-text-high: var(--base-color-gray-900);
+  --color-text-low: var(--base-color-gray-600);
 
   // spacing
   --spacing-app-x: 16px;
@@ -61,16 +68,10 @@
 body {
   overflow-x: hidden;
   font-family: var(--font-family);
-  color: var(--base-color-gray-900);
+  color: var(--color-text-high);
   font-size: var(--font-size-medium);
   line-height: var(--font-line-height-medium);
   margin: 0;
-
-  // Hide scrollbar
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
 }
 
 h1,

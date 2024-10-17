@@ -8,6 +8,7 @@ import {
   Footer,
   Stack,
   Placeholder,
+  Checkbox,
 } from "./components";
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import styles from "./app.module.scss";
@@ -15,6 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import TorchieGif from "./assets/images/happy_torchie.gif";
 import TorchieSurprised from "./assets/images/surprised_torchie.png";
 import TorchieCool from "./assets/images/cool_torchie.png";
+import TorchieLove from "./assets/images/love_torchie.png";
 
 const App = () => {
   // Set default checked option
@@ -27,8 +29,10 @@ const App = () => {
   const [scanLoading, setScanLoading] = React.useState(false);
   // Sets the state for when the scan button has been pressed
   const [nodesScanned, setNodesScanned] = React.useState(false);
-  // Store previously checked components before swap
+  // Store previously checked components before swap so we know what to remove from the scannedComponents array after swapping
   const [previouslyChecked, setPreviouslyChecked] = React.useState([]);
+  // Set success state for when the Swap button has been pressed to show a success state after all the nodes are swapped
+  const [success, setSuccess] = React.useState(false);
 
   const buttonLabelTransition = {
     type: "tween",
@@ -36,6 +40,12 @@ const App = () => {
     duration: 0.4,
     filter: { delay: 0.08 },
     transform: { delay: 0.08 },
+  };
+
+  const cardAnimation = {
+    type: "tween",
+    ease: [0.05, 0.7, 0.1, 1],
+    duration: 0.4,
   };
 
   // Listen for messages from the Figma plugin
@@ -71,6 +81,7 @@ const App = () => {
       setScanLoading(true);
       setNodesScanned(true);
       setScannedComponents([]);
+      setSuccess(false);
       parent.postMessage(
         {
           pluginMessage: {
@@ -89,6 +100,7 @@ const App = () => {
     const currentlyCheckedIndexes = scannedComponents
       .map((component, index) => (component.isChecked ? index : null))
       .filter((index) => index !== null);
+    setSuccess(true);
 
     setPreviouslyChecked(currentlyCheckedIndexes); // Store checked indexes
     setSwapLoading(true); // Set loading to true for the swap
@@ -154,10 +166,11 @@ const App = () => {
         {swapLoading && (
           <div className={styles.overlay}>
             <Placeholder
+              inverse
               imageSrc={TorchieGif}
               imageAlt="Swapping"
-              title="Swapping"
-              description="Just a moment components are being swapped..."
+              title="Swapping components"
+              description="Just a moment, swapping now..."
             />
           </div>
         )}
@@ -166,19 +179,15 @@ const App = () => {
             {scannedComponents.map((component, index) => (
               <AnimatePresence key={index}>
                 <motion.div
-                  transition={{
-                    type: "tween",
-                    ease: "easeInOut",
-                    duration: 0.12,
-                  }}
-                  initial={{ y: 4, opacity: 0.5 }}
+                  transition={cardAnimation}
+                  initial={{ y: 4, opacity: 0.2 }}
                   animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 4, opacity: 0.5 }}
+                  exit={{ y: 4, opacity: 0.2 }}
                 >
                   <div key={component.index}>
                     <img src={component.oldImage} style={{ height: 32 }} />
                     <img src={component.newImage} style={{ height: 32 }} />
-                    <input
+                    <Checkbox
                       id={component.index}
                       type="checkbox"
                       checked={component.isChecked}
@@ -197,14 +206,21 @@ const App = () => {
                   imageSrc={TorchieGif}
                   imageAlt="Scanning"
                   title="Scanning"
-                  description="Hang tight! Scanning your components now..."
+                  description="Hang tight! Scanning now..."
+                />
+              ) : !success ? (
+                <Placeholder
+                  imageSrc={TorchieSurprised}
+                  imageAlt="Nothing found"
+                  title="Nothing found"
+                  description="No Beacon components were found."
                 />
               ) : (
                 <Placeholder
-                  imageSrc={TorchieSurprised}
-                  imageAlt="Noting found"
-                  title="Noting found"
-                  description="No Beacon components were found."
+                  imageSrc={TorchieLove}
+                  imageAlt="Success"
+                  title="Successful swap"
+                  description="All components have been swapped!"
                 />
               )
             ) : (
@@ -214,7 +230,7 @@ const App = () => {
                 title="Start your scan"
                 description={`Ready to update? Scan your ${
                   state === "byPage" ? "page" : "selection"
-                }`}
+                }.`}
               />
             )}
           </React.Fragment>
@@ -270,6 +286,7 @@ const App = () => {
           variant="primary"
           style={{ width: "100%" }}
           onClick={handleSwapClick} // Trigger the swap when clicked
+          before={<RefreshOutlined16 />}
         >
           Get swapped
         </Button>

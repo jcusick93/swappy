@@ -37,7 +37,7 @@ export const Button: React.FC<ButtonProps> = ({
         gap="4px"
         justifyContent="center"
         alignItems="center"
-        style={{ width: "100%" }}
+        style={{ width: "100%", color: "inherit" }}
       >
         {before && <span>{before}</span>}
         {children}
