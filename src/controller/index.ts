@@ -120,6 +120,7 @@ async function swapComponents(checkedStates: boolean[]) {
 
     if (newComponent && node.type === "INSTANCE") {
       const instanceNode = node as InstanceNode;
+      instanceNode.resetOverrides();
       instanceNode.swapComponent(newComponent);
     } else {
       console.warn(`Node is not an instance: ${node.name}`);

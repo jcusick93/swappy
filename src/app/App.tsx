@@ -8,7 +8,7 @@ import {
   Footer,
   Stack,
   Placeholder,
-  Checkbox,
+  Accordian,
 } from "./components";
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import styles from "./app.module.scss";
@@ -17,6 +17,7 @@ import TorchieGif from "./assets/images/happy_torchie.gif";
 import TorchieSurprised from "./assets/images/surprised_torchie.png";
 import TorchieCool from "./assets/images/cool_torchie.png";
 import TorchieLove from "./assets/images/love_torchie.png";
+import { PreviewCard } from "./components/Cards/PreviewCard/PreviewCard";
 
 const App = () => {
   // Set default checked option
@@ -33,6 +34,11 @@ const App = () => {
   const [previouslyChecked, setPreviouslyChecked] = React.useState([]);
   // Set success state for when the Swap button has been pressed to show a success state after all the nodes are swapped
   const [success, setSuccess] = React.useState(false);
+
+  const swapButtonDisabled =
+    scanLoading ||
+    swapLoading ||
+    !scannedComponents.some((component) => component.isChecked);
 
   const buttonLabelTransition = {
     type: "tween",
@@ -184,7 +190,15 @@ const App = () => {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 4, opacity: 0.2 }}
                 >
-                  <div key={component.index}>
+                  <PreviewCard
+                    id={component.index}
+                    oldImage={component.oldImage}
+                    newImage={component.newImage}
+                    key={component.index}
+                    checked={component.isChecked}
+                    onChange={() => handleCheckboxChange(index)}
+                  />
+                  {/* <div key={component.index}>
                     <img src={component.oldImage} style={{ height: 32 }} />
                     <img src={component.newImage} style={{ height: 32 }} />
                     <Checkbox
@@ -193,7 +207,7 @@ const App = () => {
                       checked={component.isChecked}
                       onChange={() => handleCheckboxChange(index)}
                     />
-                  </div>
+                  </div> */}
                 </motion.div>
               </AnimatePresence>
             ))}
@@ -280,9 +294,7 @@ const App = () => {
 
         {/* Button to trigger swapping the components */}
         <Button
-          disabled={
-            scanLoading || swapLoading || scannedComponents.length === 0
-          }
+          disabled={swapButtonDisabled}
           variant="primary"
           style={{ width: "100%" }}
           onClick={handleSwapClick} // Trigger the swap when clicked
