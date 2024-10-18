@@ -21,6 +21,7 @@ let scannedComponents: {
   checked: boolean;
   oldImage?: string; // Optional: to hold old image URL if needed
   newImage?: string; // Optional: to hold new image URL if needed
+  groupName: string; // Added groupName to the scanned component structure
 }[] = [];
 
 // Function to initialize the plugin
@@ -35,14 +36,20 @@ function postMessageToUI(type: string, payload: any) {
 }
 
 // Function to process variants for a component
-async function processVariants(component: any, nodes: SceneNode[]) {
-  const { newComponentKey, keywords } = component;
+async function processVariants(
+  variant: any,
+  nodes: SceneNode[],
+  groupName: string
+) {
+  const { newComponentKey, keywords } = variant; // Adjusted to pull from variant
+
   const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
 
   if (newComponent) {
     for (const node of nodes) {
       if (node.type === "INSTANCE" && node.mainComponent) {
         const name = node.mainComponent.name;
+
         const allKeywordsPresent = keywords.every((keyword) =>
           name.includes(keyword)
         );
@@ -58,6 +65,7 @@ async function processVariants(component: any, nodes: SceneNode[]) {
             node,
             newComponentKey,
             checked: true, // Default checked state
+            groupName, // Store the groupName in each scanned component
           });
         }
       }
@@ -71,7 +79,7 @@ async function scanComponents(state: string) {
   scannedComponents = []; // Reset scannedComponents array before scanning
 
   for (const component of componentMap) {
-    const { oldParentKey, variants } = component;
+    const { groupName, oldParentKey, variants } = component;
 
     const nodes =
       state === "bySelection"
@@ -89,16 +97,17 @@ async function scanComponents(state: string) {
     }
 
     for (const variant of variants) {
-      await processVariants(variant, nodes);
+      await processVariants(variant, nodes, groupName); // Pass groupName here
     }
 
     // Sends message to update state in App
     postMessageToUI("COMPONENT_IMAGES", {
       componentImages: scannedComponents.map(
-        ({ oldImage, newImage, checked }) => ({
+        ({ oldImage, newImage, checked, groupName }) => ({
           oldImage,
           newImage,
           checked, // Include the checked state
+          groupName, // Include groupName in the payload
         })
       ),
     });

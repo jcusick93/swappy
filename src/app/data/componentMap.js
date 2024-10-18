@@ -1,6 +1,6 @@
 export const componentMap = [
   {
-    name: "Checkbox",
+    groupName: "Checkbox",
     oldParentKey: "17f09fe65ffe566f178057eb32b745a119738f12",
     variants: [
       {
@@ -21,7 +21,7 @@ export const componentMap = [
     ],
   },
   {
-    name: "Button",
+    groupName: "Button",
     // The parent of key of the component, regardless of the variant
     // e.g. node.mainComponent.parent.key
     oldParentKey: "db7764b6b623f78d703a479fff35a7d622cdcd8e",

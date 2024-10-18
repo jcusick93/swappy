@@ -56,14 +56,14 @@ const App = () => {
 
   // Listen for messages from the Figma plugin
   React.useEffect(() => {
-    window.onmessage = (event) => {
+    const handleMessage = (event) => {
       const { pluginMessage } = event.data;
       if (pluginMessage.type === "COMPONENT_IMAGES") {
         // Set scanned components, default all to checked
         setScannedComponents(
           pluginMessage.componentImages.map((component) => ({
             ...component,
-            isChecked: true, // Default checked state
+            isChecked: true,
           }))
         );
       } else if (pluginMessage.type === "SWAP_COMPLETE") {
@@ -71,28 +71,52 @@ const App = () => {
         setScannedComponents((prev) =>
           prev.filter((_, index) => !previouslyChecked.includes(index))
         );
-        setPreviouslyChecked([]); // Reset checked indexes after swap
-        setSwapLoading(false); // Set loading to false when swap is complete
+        setPreviouslyChecked([]);
+        setSwapLoading(false);
       } else if (pluginMessage.type === "SCAN_COMPLETE") {
         setTimeout(() => {
           setScanLoading(false);
         }, 1000);
       }
     };
+
+    window.onmessage = handleMessage;
+
+    return () => {
+      window.onmessage = null; // Clean up listener on unmount
+    };
   }, [previouslyChecked]);
 
+  // Group scanned components by groupName and sort alphabetically
+  const groupedComponents = scannedComponents.reduce((acc, component) => {
+    if (!acc[component.groupName]) {
+      acc[component.groupName] = [];
+    }
+    acc[component.groupName].push(component);
+    return acc;
+  }, {});
+
+  // Sort the grouped components by groupName
+  const sortedGroupNames = Object.keys(groupedComponents).sort();
+
+  // Create a new object that preserves the sorted order
+  const sortedGroupedComponents = sortedGroupNames.reduce((acc, groupName) => {
+    acc[groupName] = groupedComponents[groupName];
+    return acc;
+  }, {});
+
   const handleScanClick = () => {
-    // Trigger the scan based on current state (byPage or bySelection)
+    setScanLoading(true);
+    setNodesScanned(true);
+    setScannedComponents([]);
+    setSuccess(false);
+
     setTimeout(() => {
-      setScanLoading(true);
-      setNodesScanned(true);
-      setScannedComponents([]);
-      setSuccess(false);
       parent.postMessage(
         {
           pluginMessage: {
             type: "SCAN_COMPONENTS",
-            scanType: state, // Send the current state ('byPage' or 'bySelection')
+            scanType: state,
           },
         },
         "*"
@@ -106,6 +130,9 @@ const App = () => {
     const currentlyCheckedIndexes = scannedComponents
       .map((component, index) => (component.isChecked ? index : null))
       .filter((index) => index !== null);
+
+    setPreviouslyChecked(currentlyCheckedIndexes);
+    setSwapLoading(true);
     setSuccess(true);
 
     setPreviouslyChecked(currentlyCheckedIndexes); // Store checked indexes
@@ -117,7 +144,7 @@ const App = () => {
           type: "SWAP_COMPONENTS",
           checkedStates: scannedComponents.map(
             (component) => component.isChecked
-          ), // Send the checked states
+          ),
         },
       },
       "*"
@@ -128,7 +155,7 @@ const App = () => {
     // Update the checked state of the specific component
     setScannedComponents((prevComponents) => {
       const updatedComponents = [...prevComponents];
-      updatedComponents[index].isChecked = !updatedComponents[index].isChecked; // Toggle the checked state
+      updatedComponents[index].isChecked = !updatedComponents[index].isChecked;
 
       // Post updated scannedComponents to Figma
       parent.postMessage(
@@ -148,8 +175,7 @@ const App = () => {
   return (
     <div className={styles.container}>
       <Header>
-        {/* Segmented control for selecting by page or by selection */}
-        <SegmentedControl value={state} onChange={(value) => setState(value)}>
+        <SegmentedControl value={state} onChange={setState}>
           <SegmentedControlOption
             value="byPage"
             name="selection-type"
@@ -182,34 +208,28 @@ const App = () => {
         )}
         {scannedComponents.length > 0 ? (
           <Stack flexDirection="column" gap="4px">
-            {scannedComponents.map((component, index) => (
-              <AnimatePresence key={index}>
-                <motion.div
-                  transition={cardAnimation}
-                  initial={{ y: 4, opacity: 0.2 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 4, opacity: 0.2 }}
-                >
-                  <PreviewCard
-                    id={component.index}
-                    oldImage={component.oldImage}
-                    newImage={component.newImage}
-                    key={component.index}
-                    checked={component.isChecked}
-                    onChange={() => handleCheckboxChange(index)}
-                  />
-                  {/* <div key={component.index}>
-                    <img src={component.oldImage} style={{ height: 32 }} />
-                    <img src={component.newImage} style={{ height: 32 }} />
-                    <Checkbox
-                      id={component.index}
-                      type="checkbox"
-                      checked={component.isChecked}
-                      onChange={() => handleCheckboxChange(index)}
-                    />
-                  </div> */}
-                </motion.div>
-              </AnimatePresence>
+            {Object.keys(sortedGroupedComponents).map((groupName) => (
+              <Accordian key={groupName} title={groupName}>
+                {sortedGroupedComponents[groupName].map((component, index) => (
+                  <AnimatePresence key={index}>
+                    <motion.div
+                      transition={cardAnimation}
+                      initial={{ y: 4, opacity: 0.2 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 4, opacity: 0.2 }}
+                    >
+                      <PreviewCard
+                        id={component.index}
+                        oldImage={component.oldImage}
+                        newImage={component.newImage}
+                        key={component.index}
+                        checked={component.isChecked}
+                        onChange={() => handleCheckboxChange(index)}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                ))}
+              </Accordian>
             ))}
           </Stack>
         ) : (
@@ -257,7 +277,7 @@ const App = () => {
           disabled={scanLoading || swapLoading}
           variant="secondary"
           style={{ width: "100%" }}
-          onClick={handleScanClick} // Trigger the scan when clicked
+          onClick={handleScanClick}
         >
           <span className={styles.buttonLabelWrapper}>
             <Stack
@@ -297,7 +317,7 @@ const App = () => {
           disabled={swapButtonDisabled}
           variant="primary"
           style={{ width: "100%" }}
-          onClick={handleSwapClick} // Trigger the swap when clicked
+          onClick={handleSwapClick}
           before={<RefreshOutlined16 />}
         >
           Get swapped
