@@ -16,13 +16,17 @@ figma.showUI(__html__, pluginFrameSize);
 
 // Declare a global variable to store scanned components
 let scannedComponents: {
-  node: SceneNode;
+  id: number; // Added id to the scanned component structure
+  node: InstanceNode; // Change to InstanceNode
   newComponentKey: string;
   checked: boolean;
   oldImage?: string; // Optional: to hold old image URL if needed
   newImage?: string; // Optional: to hold new image URL if needed
   groupName: string; // Added groupName to the scanned component structure
 }[] = [];
+
+// Initialize a counter for generating unique IDs
+let componentIdCounter = 0;
 
 // Function to initialize the plugin
 function initializePlugin() {
@@ -38,7 +42,7 @@ function postMessageToUI(type: string, payload: any) {
 // Function to process variants for a component
 async function processVariants(
   variant: any,
-  nodes: SceneNode[],
+  nodes: InstanceNode[], // Change to InstanceNode[]
   groupName: string
 ) {
   const { newComponentKey, keywords } = variant; // Adjusted to pull from variant
@@ -60,6 +64,7 @@ async function processVariants(
 
           // Add component with old/new images and checked state to scannedComponents
           scannedComponents.push({
+            id: componentIdCounter++, // Increment and assign a unique id
             oldImage: oldImageSrc,
             newImage: newImageSrc,
             node,
@@ -77,42 +82,59 @@ async function processVariants(
 async function scanComponents(state: string) {
   console.log("Scan state received:", state);
   scannedComponents = []; // Reset scannedComponents array before scanning
+  componentIdCounter = 0; // Reset the counter for new scans
 
+  // Scan all nodes
+  const allNodes =
+    state === "bySelection"
+      ? getSelectedInstances(figma.currentPage.selection, componentMap)
+      : figma.currentPage.findAll((n) => n.type === "INSTANCE");
+
+  // Process each component in the componentMap
   for (const component of componentMap) {
     const { groupName, oldParentKey, variants } = component;
 
-    const nodes =
-      state === "bySelection"
-        ? getSelectedInstances(figma.currentPage.selection, componentMap)
-        : figma.currentPage.findAll(
-            (n) =>
-              n.type === "INSTANCE" &&
-              (n.mainComponent?.parent as any)?.key === oldParentKey
-          );
-
-    if (state === "bySelection" && nodes.length === 0) {
-      postMessageToUI("SCAN_COMPLETE", {});
-      figma.notify("No instances selected for scanning.");
-      return;
-    }
+    // Filter nodes that belong to the current component
+    const nodes = allNodes.filter(
+      (node): node is InstanceNode =>
+        node.type === "INSTANCE" &&
+        (node.mainComponent?.key === oldParentKey ||
+          node.mainComponent?.parent?.key === oldParentKey)
+    );
 
     for (const variant of variants) {
       await processVariants(variant, nodes, groupName); // Pass groupName here
     }
-
-    // Sends message to update state in App
-    postMessageToUI("COMPONENT_IMAGES", {
-      componentImages: scannedComponents.map(
-        ({ oldImage, newImage, checked, groupName }) => ({
-          oldImage,
-          newImage,
-          checked, // Include the checked state
-          groupName, // Include groupName in the payload
-        })
-      ),
-    });
-    postMessageToUI("SCAN_COMPLETE", {});
   }
+
+  // Identify and remove only nested components with parents in componentMap
+  const parentKeys = componentMap.map((component) => component.oldParentKey);
+  const parentComponents = scannedComponents.filter((component) => {
+    const isNested = scannedComponents.some(
+      (otherComponent) =>
+        otherComponent.node.mainComponent?.parent?.key ===
+          component.node.mainComponent?.key &&
+        parentKeys.includes(otherComponent.node.mainComponent?.parent?.key)
+    );
+    return !isNested; // Keep only components that are not nested
+  });
+
+  // Update scannedComponents to only include parent components
+  scannedComponents = parentComponents;
+
+  // Sends message to update state in App
+  postMessageToUI("COMPONENT_IMAGES", {
+    componentImages: scannedComponents.map(
+      ({ id, oldImage, newImage, checked, groupName }) => ({
+        id, // Include the id
+        oldImage,
+        newImage,
+        checked, // Include the checked state
+        groupName, // Include groupName in the payload
+      })
+    ),
+  });
+  postMessageToUI("SCAN_COMPLETE", {});
 }
 
 // Function to swap components
@@ -142,6 +164,7 @@ async function swapComponents(checkedStates: boolean[]) {
 
   postMessageToUI("UPDATE_SCANNED_COMPONENTS", {
     updatedComponents: scannedComponents.map((component) => ({
+      id: component.id, // Include the id in the update
       oldImage: component.oldImage,
       newImage: component.newImage,
       checked: false,

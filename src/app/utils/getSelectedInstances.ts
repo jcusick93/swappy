@@ -33,7 +33,8 @@ function isOldComponent(instance, componentMap) {
   return componentMap.some((component) => {
     return (
       instance.mainComponent &&
-      (instance.mainComponent.parent as any)?.key === component.oldParentKey
+      (instance.mainComponent.parent?.key === component.oldParentKey ||
+        instance.mainComponent.key === component.oldParentKey) // Check both conditions
     );
   });
 }

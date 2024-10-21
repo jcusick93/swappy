@@ -38,6 +38,8 @@
   --font-line-height-small: 16px;
   --font-line-height-medium: 20px;
   --font-line-height-large: 24px;
+  --font-weight-default: 400;
+  --font-weight-bold: 700;
 
   // colors
   --color-divider-low: var(--base-color-gray-75);
@@ -52,6 +54,7 @@
   --color-text-low: var(--base-color-gray-600);
 
   // spacing
+  --spacing-app-negative-x: -16px;
   --spacing-app-x: 16px;
   --spacing-app-y: 8px;
 }

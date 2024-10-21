@@ -1,5 +1,25 @@
 export const componentMap = [
   {
+    groupName: "Button",
+    // The parent of key of the component, regardless of the variant
+    // e.g. node.mainComponent.parent.key
+    oldParentKey: "db7764b6b623f78d703a479fff35a7d622cdcd8e",
+    // The new component that is imported and swapped in, this MUST be specific to the variant you want!
+    // e.g. node.mainComponent.key
+    variants: [
+      {
+        name: "Large, Primary",
+        keywords: ["Type=Primary", "Size=L"],
+        newComponentKey: "0fc07f90ef38e7f940f815db1e3aeb1be45a6a77",
+      },
+      {
+        name: "Large, Secondary",
+        keywords: ["Type=Secondary", "Size=L"],
+        newComponentKey: "fa89286f8b494dc94e5148e599bd12eaa3faf435",
+      },
+    ],
+  },
+  {
     groupName: "Checkbox",
     oldParentKey: "17f09fe65ffe566f178057eb32b745a119738f12",
     variants: [
@@ -21,22 +41,13 @@ export const componentMap = [
     ],
   },
   {
-    groupName: "Button",
-    // The parent of key of the component, regardless of the variant
-    // e.g. node.mainComponent.parent.key
-    oldParentKey: "db7764b6b623f78d703a479fff35a7d622cdcd8e",
-    // The new component that is imported and swapped in, this MUST be specific to the variant you want!
-    // e.g. node.mainComponent.key
+    groupName: "Button Group",
+    oldParentKey: "060df2468891d0bade4669f57affbf43eec41e69",
     variants: [
       {
-        name: "Large, Primary",
-        keywords: ["Type=Primary", "Size=L"],
-        newComponentKey: "0fc07f90ef38e7f940f815db1e3aeb1be45a6a77",
-      },
-      {
-        name: "Large, Secondary",
-        keywords: ["Type=Secondary", "Size=L"],
-        newComponentKey: "fa89286f8b494dc94e5148e599bd12eaa3faf435",
+        name: "Default",
+        keywords: [],
+        newComponentKey: "7103c625938d929adfdd1f2f10ff7155bfc3d207",
       },
     ],
   },

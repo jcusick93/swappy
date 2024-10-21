@@ -1,8 +1,41 @@
 .accordian {
+  margin-right: var(--spacing-app-negative-x);
 }
 
 .accordianButton {
+  cursor: pointer;
+  font-size: var(--font-size-medium);
+  line-height: var(--font-line-height-medium);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  justify-content: flex-start;
+  gap: 4px;
   background-color: none;
   outline: none;
   border: none;
+  padding: 4px 16px 4px 0px;
+  min-height: 40px;
+  align-items: center;
+  background: none;
+  border-bottom: 1px solid var(--color-divider-low);
+}
+
+.buttonIconContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2px;
+  opacity: 0.2;
+  height: 12px;
+  width: 12px;
+  transition: opacity 200ms ease;
+}
+
+.accordianButton:hover > .buttonIconContainer {
+  opacity: 0.5;
+}
+
+.accordianChildrenContainer {
+  padding-right: var(--spacing-app-x);
+  padding-top: 4px;
 }

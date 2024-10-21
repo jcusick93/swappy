@@ -24,7 +24,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <motion.button
       whileTap={disabled ? undefined : { scale: 0.95 }} // Disable tap animation when button is disabled
-      whileHover={disabled ? undefined : { scale: 1.05 }} // Disable hover animation when button is disabled
+      // Disable hover animation when button is disabled
       className={`${styles.button} ${
         variant === "primary"
           ? styles.buttonVariantPrimary
