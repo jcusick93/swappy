@@ -8,7 +8,7 @@ export interface PreviewCardProps
   oldImage: string;
   newImage: string;
   checked?: boolean;
-  key?: string;
+
   id: string;
   defaultChecked?: boolean;
 }
@@ -16,13 +16,13 @@ export interface PreviewCardProps
 export const PreviewCard: React.FC<PreviewCardProps> = ({
   oldImage,
   newImage,
-  key,
+
   id,
   defaultChecked,
   ...rest
 }) => {
   return (
-    <div key={key} className={styles.previewCard}>
+    <div className={styles.previewCard}>
       {/* stack that holds images */}
       <div className={styles.previewCardImgStack}>
         {/* image container 1 */}

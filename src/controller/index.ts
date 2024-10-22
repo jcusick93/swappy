@@ -78,13 +78,12 @@ async function processVariants(
   }
 }
 
-// Function to scan components (byPage or bySelection)
+// Function to scan components
 async function scanComponents(state: string) {
   console.log("Scan state received:", state);
-  scannedComponents = []; // Reset scannedComponents array before scanning
-  componentIdCounter = 0; // Reset the counter for new scans
+  scannedComponents = [];
+  componentIdCounter = 0;
 
-  // Scan all nodes
   const allNodes =
     state === "bySelection"
       ? getSelectedInstances(figma.currentPage.selection, componentMap)
@@ -92,35 +91,29 @@ async function scanComponents(state: string) {
 
   // Process each component in the componentMap
   for (const component of componentMap) {
-    const { groupName, oldParentKey, variants } = component;
+    const { oldParentKey, variants } = component;
 
-    // Filter nodes that belong to the current component
+    // Create an array of oldParentKeys from componentMap
+    const oldParentKeys = componentMap.map(
+      (component) => component.oldParentKey
+    );
+    // Filter nodes that belong to the current component and are not children (i.e., have no parent)
     const nodes = allNodes.filter(
       (node): node is InstanceNode =>
         node.type === "INSTANCE" &&
+        // Check if the main component key matches the old parent key
         (node.mainComponent?.key === oldParentKey ||
-          node.mainComponent?.parent?.key === oldParentKey)
+          node.mainComponent?.parent?.key === oldParentKey) &&
+        // Ensure the parent is not an instance
+        node.parent &&
+        // Ensure the parent's keys do not match the old parent key
+        !oldParentKeys.includes(node.parent?.mainComponent?.key)
     );
 
     for (const variant of variants) {
-      await processVariants(variant, nodes, groupName); // Pass groupName here
+      await processVariants(variant, nodes, component.groupName); // Pass groupName here
     }
   }
-
-  // Identify and remove only nested components with parents in componentMap
-  const parentKeys = componentMap.map((component) => component.oldParentKey);
-  const parentComponents = scannedComponents.filter((component) => {
-    const isNested = scannedComponents.some(
-      (otherComponent) =>
-        otherComponent.node.mainComponent?.parent?.key ===
-          component.node.mainComponent?.key &&
-        parentKeys.includes(otherComponent.node.mainComponent?.parent?.key)
-    );
-    return !isNested; // Keep only components that are not nested
-  });
-
-  // Update scannedComponents to only include parent components
-  scannedComponents = parentComponents;
 
   // Sends message to update state in App
   postMessageToUI("COMPONENT_IMAGES", {
