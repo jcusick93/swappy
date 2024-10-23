@@ -1,26 +1,37 @@
-.checkbox {
-  display: inline-flex;
-  cursor: pointer;
+:root {
+  --checkbox-size: 18px;
 }
 
 .checkbox > input {
   display: none;
 }
 
-.checkboxSquare {
-  height: 16px;
-  width: 16px;
-  border: solid 1px var(--color-divider-medium);
-  background-color: white;
+.checkbox {
+  cursor: pointer;
+}
+
+.checkboxCheckmarkContainer {
+  height: var(--checkbox-size);
+  width: var(--checkbox-size);
+  background-color: var(--color-primary-default);
+  border: solid 2px var(--color-divider-medium);
   border-radius: 4px;
-  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
+  color: transparent;
+  position: relative;
+  overflow: hidden;
+  transition: transform 100ms var(--animation-curve-elastic), border 200ms ease,
+    background-color 200ms ease;
+  color: white;
+
+  &:active {
+    transform: var(--transform-scale-pressed-dramatic);
+  }
 }
 
-.checkbox:has(input:checked) .checkboxSquare {
-  background-color: var(--color-primary-default);
+.checkbox > input:checked ~ .checkboxCheckmarkContainer {
   border-color: var(--color-primary-default);
 
   &:hover {
@@ -34,5 +45,29 @@
   }
 }
 
-.checkbox:has(input:not(:checked)) .checkboxSquare {
+.containerBackplate {
+  position: absolute;
+  height: var(--checkbox-size);
+  width: var(--checkbox-size);
+  background-color: var(--color-secondary-default);
+  transform-origin: 50% 50%;
+  transition: height 150ms var(--animation-curve-accelerate),
+    width 150ms var(--animation-curve-accelerate), background-color 200ms ease;
+
+  &:hover {
+    background-color: var(--color-secondary-hover);
+  }
+  &:active {
+    background-color: var(--color-secondary-pressed);
+  }
+}
+
+.checkbox > input:checked ~ .checkboxCheckmarkContainer > .containerBackplate {
+  height: 0;
+  width: 0;
+  transition: all 150ms var(--animation-curve-decelerate);
+}
+
+.checkbox > input:not(:checked) ~ .checkboxCheckmarkContainer > .checkmark {
+  display: none;
 }

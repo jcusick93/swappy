@@ -14,11 +14,13 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 }) => {
   return (
     <label className={styles.checkbox}>
-      <input type="checkbox" id={id} {...rest}></input>
-      <div className={styles.checkboxSquare}>
-        <CheckmarkOutlined16 />
+      <input type="checkbox" {...rest} />
+      <div className={styles.checkboxCheckmarkContainer}>
+        <span className={styles.checkmark}>
+          <CheckmarkOutlined16 />
+        </span>
+        <div className={styles.containerBackplate} />
       </div>
-      {children && <span>{children}</span>}
     </label>
   );
 };

@@ -106,7 +106,7 @@ async function scanComponents(state: string) {
           node.mainComponent?.parent?.key === oldParentKey) &&
         // Ensure the parent is not an instance
         node.parent &&
-        // Ensure the parent's keys do not match the old parent key
+        // Ensure the parent's keys do not match any keys in the parent array
         !oldParentKeys.includes(node.parent?.mainComponent?.key)
     );
 
