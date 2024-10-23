@@ -53,6 +53,10 @@
   --color-text-high: var(--base-color-gray-900);
   --color-text-low: var(--base-color-gray-600);
 
+  // shadows
+
+  --shadow-focus: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #000;
+
   // spacing
   --spacing-app-negative-x: -16px;
   --spacing-app-x: 16px;

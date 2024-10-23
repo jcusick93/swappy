@@ -52,3 +52,7 @@
     background-color: var(--color-secondary-pressed);
   }
 }
+
+.button:focus-visible {
+  box-shadow: var(--shadow-focus);
+}

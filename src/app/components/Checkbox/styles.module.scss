@@ -3,18 +3,53 @@
 }
 
 .checkbox > input {
-  display: none;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 .checkbox {
   cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 99px;
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  transition: all 200ms ease;
+
+  &:hover {
+    background-color: color-mix(
+      in srgb,
+      var(--color-primary-default) 8%,
+      white
+    );
+  }
+  &:active {
+    transform: var(--transform-scale-pressed-dramatic);
+    background-color: color-mix(
+      in srgb,
+      var(--color-primary-default) 12%,
+      white
+    );
+  }
+}
+
+.checkbox > input:focus-visible + .checkboxCheckmarkContainer {
+  box-shadow: var(--shadow-focus);
 }
 
 .checkboxCheckmarkContainer {
   height: var(--checkbox-size);
   width: var(--checkbox-size);
   background-color: var(--color-primary-default);
-  border: solid 2px var(--color-divider-medium);
+  border: solid 2px var(--color-primary-default);
   border-radius: 4px;
   display: flex;
   justify-content: center;
@@ -22,50 +57,47 @@
   color: transparent;
   position: relative;
   overflow: hidden;
-  transition: transform 100ms var(--animation-curve-elastic), border 200ms ease,
-    background-color 200ms ease;
+  // transition: transform 100ms var(--animation-curve-elastic), border 200ms ease,
+  //   background-color 200ms ease;
   color: white;
-
-  &:active {
-    transform: var(--transform-scale-pressed-dramatic);
-  }
 }
 
-.checkbox > input:checked ~ .checkboxCheckmarkContainer {
-  border-color: var(--color-primary-default);
+// when checked styles
+.checkbox:hover > input:checked + .checkboxCheckmarkContainer {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
 
-  &:hover {
-    background-color: var(--color-primary-hover);
-    border-color: var(--color-primary-hover);
-  }
+.checkbox:active > input:checked + .checkboxCheckmarkContainer {
+  background-color: var(--color-primary-pressed);
+  border-color: var(--color-primary-pressed);
+}
 
-  &:active {
-    background-color: var(--color-primary-pressed);
-    border-color: var(--color-primary-pressed);
-  }
+// when not-checked styles
+.checkbox > input:not(:checked) + .checkboxCheckmarkContainer {
+  border-color: var(--color-divider-medium);
+}
+
+.checkbox
+  > input:not(:checked)
+  + .checkboxCheckmarkContainer
+  > .containerBackplate {
+  background-color: var(--color-secondary-default);
 }
 
 .containerBackplate {
+  background: var(--color-secondary-default);
   position: absolute;
   height: var(--checkbox-size);
   width: var(--checkbox-size);
-  background-color: var(--color-secondary-default);
   transform-origin: 50% 50%;
-  transition: height 150ms var(--animation-curve-accelerate),
-    width 150ms var(--animation-curve-accelerate), background-color 200ms ease;
-
-  &:hover {
-    background-color: var(--color-secondary-hover);
-  }
-  &:active {
-    background-color: var(--color-secondary-pressed);
-  }
+  transition: all 180ms ease;
+  z-index: 2;
 }
 
 .checkbox > input:checked ~ .checkboxCheckmarkContainer > .containerBackplate {
-  height: 0;
-  width: 0;
-  transition: all 150ms var(--animation-curve-decelerate);
+  height: 0px;
+  width: 0px;
 }
 
 .checkbox > input:not(:checked) ~ .checkboxCheckmarkContainer > .checkmark {

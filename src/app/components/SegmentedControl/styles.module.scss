@@ -17,7 +17,17 @@
 }
 
 .segmentedControlOption > input {
-  display: none;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.segmentedControlOption:has(input:focus-visible) {
+  box-shadow: var(--shadow-focus);
 }
 
 input:disabled {
@@ -28,6 +38,7 @@ input:disabled {
 .segmentedControlOption {
   position: relative;
   width: 100%;
+  border-radius: var(--border-radius-button);
 }
 
 .segmentedControlOptionContainer {
