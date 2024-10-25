@@ -4,17 +4,13 @@ import { CheckmarkOutlined16 } from "../Icons/CheckmarkOutlined16";
 
 export interface CheckboxProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-  children?: React.ReactNode;
+  id: string;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
-  children,
-  id,
-  ...rest
-}) => {
+export const Checkbox: React.FC<CheckboxProps> = ({ id, ...rest }) => {
   return (
-    <label className={styles.checkbox}>
-      <input type="checkbox" {...rest} />
+    <label className={styles.checkbox} htmlFor={id}>
+      <input type="checkbox" {...rest} id={id} />
       <div className={styles.checkboxCheckmarkContainer}>
         <span className={styles.checkmark}>
           <CheckmarkOutlined16 />

@@ -8,7 +8,7 @@ console.clear();
 // Default plugin size
 const pluginFrameSize = {
   width: 320,
-  height: 400,
+  height: 500,
 };
 
 // Show plugin UI
@@ -24,6 +24,9 @@ let scannedComponents: {
   newImage?: string; // Optional: to hold new image URL if needed
   groupName: string; // Added groupName to the scanned component structure
 }[] = [];
+
+// Variable to hold the resetOverrides state
+let resetOverrides = true; // Default value
 
 // Initialize a counter for generating unique IDs
 let componentIdCounter = 0;
@@ -144,7 +147,9 @@ async function swapComponents(checkedStates: boolean[]) {
 
     if (newComponent && node.type === "INSTANCE") {
       const instanceNode = node as InstanceNode;
-      instanceNode.resetOverrides();
+      if (resetOverrides) {
+        instanceNode.resetOverrides(); // Reset overrides if the flag is true
+      }
       instanceNode.swapComponent(newComponent);
     } else {
       console.warn(`Node is not an instance: ${node.name}`);
@@ -204,6 +209,9 @@ figma.ui.onmessage = async (msg) => {
   } else if (msg.type === "UPDATE_SCANNED_COMPONENTS") {
     console.log("Received updated scanned components from UI...");
     updateScannedComponents(msg.updatedComponents);
+  } else if (msg.type === "RESET_OVERRIDES") {
+    resetOverrides = msg.value; // Capture the value correctly
+    console.log("Reset overrides", resetOverrides);
   }
 };
 

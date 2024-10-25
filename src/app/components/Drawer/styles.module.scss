@@ -1,0 +1,21 @@
+.drawer {
+  height: 100vh;
+  width: 100vw;
+  background-color: white;
+  position: absolute;
+  z-index: 999;
+}
+
+.drawerHeader {
+  border-bottom: solid 1px var(--color-divider-low);
+  padding: var(--spacing-app-y) var(--spacing-app-x) var(--spacing-app-y) 8px;
+}
+
+.drawerTitle {
+  font-size: var(--font-size-large);
+  line-height: var(--font-line-height-large);
+}
+
+.drawerBody {
+  padding: var(--spacing-app-y) var(--spacing-app-x);
+}

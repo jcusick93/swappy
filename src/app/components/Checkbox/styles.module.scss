@@ -22,7 +22,8 @@
   justify-content: center;
   align-items: center;
   background-color: transparent;
-  transition: all 200ms ease;
+  transition: background-color 200ms ease,
+    transform 150ms var(--animation-curve-elastic);
 
   &:hover {
     background-color: color-mix(
@@ -31,13 +32,20 @@
       white
     );
   }
+  &:hover .containerBackplate {
+    background-color: var(--color-secondary-hover);
+  }
   &:active {
     transform: var(--transform-scale-pressed-dramatic);
     background-color: color-mix(
       in srgb,
-      var(--color-primary-default) 12%,
+      var(--color-primary-default) 20%,
       white
     );
+
+    &:active .containerBackplate {
+      background-color: var(--color-secondary-pressed);
+    }
   }
 }
 
@@ -57,8 +65,6 @@
   color: transparent;
   position: relative;
   overflow: hidden;
-  // transition: transform 100ms var(--animation-curve-elastic), border 200ms ease,
-  //   background-color 200ms ease;
   color: white;
 }
 
@@ -78,26 +84,24 @@
   border-color: var(--color-divider-medium);
 }
 
-.checkbox
-  > input:not(:checked)
-  + .checkboxCheckmarkContainer
-  > .containerBackplate {
+.containerBackplate {
   background-color: var(--color-secondary-default);
 }
 
 .containerBackplate {
-  background: var(--color-secondary-default);
+  background: white;
   position: absolute;
   height: var(--checkbox-size);
   width: var(--checkbox-size);
   transform-origin: 50% 50%;
-  transition: all 180ms ease;
+  transition: transform 180ms var(--animation-curve-accelerate),
+    background-color 200ms ease;
   z-index: 2;
+  transform: scale(1);
 }
 
 .checkbox > input:checked ~ .checkboxCheckmarkContainer > .containerBackplate {
-  height: 0px;
-  width: 0px;
+  transform: scale(0);
 }
 
 .checkbox > input:not(:checked) ~ .checkboxCheckmarkContainer > .checkmark {

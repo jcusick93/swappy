@@ -9,6 +9,8 @@ import {
   Stack,
   Placeholder,
   Accordian,
+  IconButton,
+  Drawer,
 } from "./components";
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import { PreviewCard } from "./components/Cards/PreviewCard/PreviewCard";
@@ -20,6 +22,8 @@ import TorchieCool from "./assets/images/cool_torchie.png";
 import TorchieLove from "./assets/images/love_torchie.png";
 
 import styles from "./app.module.scss";
+import { SettingsOutlined16 } from "./components/Icons/SettingsOutlined16";
+import { Switch } from "./components/Switch/Switch";
 
 const buttonLabelTransition = {
   type: "tween",
@@ -44,6 +48,10 @@ const App = () => {
   const [nodesScanned, setNodesScanned] = useState(false);
   // Sets the sucess state to show a success screen
   const [success, setSuccess] = useState(false);
+  // Drawer states
+  const [openDrawer, setOpenDrawer] = React.useState(false);
+  // Reset overrides state
+  const [resetOverrides, setResetOverrides] = React.useState(true);
 
   const swapButtonDisabled =
     scanLoading ||
@@ -118,6 +126,22 @@ const App = () => {
     );
   };
 
+  const handleResetOverridesClick = () => {
+    setResetOverrides((prev) => {
+      const newValue = !prev; // Toggle the value
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: "RESET_OVERRIDES",
+            value: newValue, // Send the new value
+          },
+        },
+        "*"
+      );
+      return newValue; // Return the new value to update the state
+    });
+  };
+
   const handleCheckboxChange = (id) => {
     setScannedComponents((prev) =>
       prev.map((c) => (c.id === id ? { ...c, isChecked: !c.isChecked } : c))
@@ -136,6 +160,21 @@ const App = () => {
 
   return (
     <div className={styles.container}>
+      <Drawer
+        open={openDrawer}
+        onClose={() => setOpenDrawer(false)}
+        title="Settings"
+      >
+        <Stack flexDirection="column" gap="8px">
+          <Switch
+            label="Reset overrides"
+            id="overrides"
+            checked={resetOverrides}
+            onChange={handleResetOverridesClick}
+          />
+          <Switch label="Preserve text content" id="text" />
+        </Stack>
+      </Drawer>
       <Header>
         <SegmentedControl value={state} onChange={setState}>
           <SegmentedControlOption
@@ -151,6 +190,12 @@ const App = () => {
             By selection
           </SegmentedControlOption>
         </SegmentedControl>
+        <IconButton
+          label="Settings"
+          icon={<SettingsOutlined16 />}
+          disabled={scanLoading || swapLoading}
+          onClick={() => setOpenDrawer(true)}
+        />
       </Header>
 
       <Body>

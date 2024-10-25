@@ -3,4 +3,9 @@
   padding: var(--spacing-app-y) var(--spacing-app-x);
   background-color: white;
   border-bottom: solid 1px var(--color-divider-low);
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
 }

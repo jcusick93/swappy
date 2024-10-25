@@ -3,7 +3,8 @@
   display: flex;
   justify-content: center;
   flex-direction: column;
-  height: 100vh; // Set height to 100% of the viewport height
+  height: 100vh;
+  position: relative;
 }
 
 // animated button label wrapper

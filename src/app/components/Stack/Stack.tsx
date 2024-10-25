@@ -1,6 +1,8 @@
 import * as React from "react";
 
-export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface StackProps<T extends React.ElementType = "div">
+  extends React.HTMLAttributes<T> {
+  as?: T; // Prop to specify the element type
   flexDirection?: React.CSSProperties["flexDirection"];
   gap?: "0px" | "4px" | "8px" | "12px";
   display?: "inline-flex" | "flex";
@@ -10,7 +12,13 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   style?: React.CSSProperties;
 }
 
-export const Stack: React.FC<StackProps> = ({
+// Create a type that extracts the props for the specified element type
+type PolymorphicRef<T extends React.ElementType> = T extends React.ElementType
+  ? React.ComponentProps<T>
+  : never;
+
+export const Stack = <T extends React.ElementType = "div">({
+  as: Component = "div", // Default to 'div' if no 'as' prop is provided
   children,
   flexDirection = "row",
   gap = "4px",
@@ -19,9 +27,9 @@ export const Stack: React.FC<StackProps> = ({
   alignItems,
   style,
   ...rest
-}) => {
+}: StackProps<T> & PolymorphicRef<T>) => {
   return (
-    <div
+    <Component
       style={{
         flexDirection,
         gap,
@@ -30,9 +38,9 @@ export const Stack: React.FC<StackProps> = ({
         alignItems,
         ...style,
       }}
-      {...rest}
+      {...(rest as PolymorphicRef<T>)} // Spread the rest props with the correct type
     >
       {children}
-    </div>
+    </Component>
   );
 };

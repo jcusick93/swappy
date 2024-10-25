@@ -1,0 +1,31 @@
+.iconButton {
+  outline: none;
+  border: none;
+  height: 32px;
+  width: 32px;
+  border-radius: 99px;
+  color: var(--color-text-high);
+  transition: background-color 120ms ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-secondary-hover);
+  }
+
+  &:active {
+    background-color: var(--color-secondary-pressed);
+  }
+
+  &:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}

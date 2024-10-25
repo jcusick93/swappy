@@ -10,3 +10,6 @@ export * from "./Body";
 export * from "./Header";
 export * from "./Placeholder";
 export * from "./Accordian";
+export * from "./IconButton";
+export * from "./Drawer";
+export * from "./Switch";
