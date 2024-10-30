@@ -16,6 +16,11 @@
   width: 1px;
 }
 
+.switch:has(input:disabled) {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .switchTrack {
   overflow: hidden;
   width: 38px;

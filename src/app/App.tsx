@@ -52,6 +52,8 @@ const App = () => {
   const [openDrawer, setOpenDrawer] = React.useState(false);
   // Reset overrides state
   const [resetOverrides, setResetOverrides] = React.useState(true);
+  //
+  const [preserveText, setPreserveText] = React.useState(false);
 
   const swapButtonDisabled =
     scanLoading ||
@@ -127,6 +129,7 @@ const App = () => {
   };
 
   const handleResetOverridesClick = () => {
+    setPreserveText(false);
     setResetOverrides((prev) => {
       const newValue = !prev; // Toggle the value
       parent.postMessage(
@@ -172,7 +175,13 @@ const App = () => {
             checked={resetOverrides}
             onChange={handleResetOverridesClick}
           />
-          <Switch label="Preserve text content" id="text" />
+          <Switch
+            label="Preserve text content"
+            id="text"
+            disabled={!resetOverrides}
+            checked={preserveText}
+            onChange={() => setPreserveText(!preserveText)}
+          />
         </Stack>
       </Drawer>
       <Header>
