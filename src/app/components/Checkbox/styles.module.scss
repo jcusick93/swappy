@@ -13,17 +13,23 @@
 }
 
 .checkbox {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.checkboxCircle {
   cursor: pointer;
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 36px;
+  min-width: 36px;
   border-radius: 99px;
   background-color: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: transparent;
-  transition: background-color 200ms ease,
-    transform 150ms var(--animation-curve-elastic);
+  transition: background-color 200ms ease;
 
   &:hover {
     background-color: color-mix(
@@ -32,24 +38,17 @@
       white
     );
   }
-  &:hover .containerBackplate {
-    background-color: var(--color-secondary-hover);
-  }
+
   &:active {
-    transform: var(--transform-scale-pressed-dramatic);
     background-color: color-mix(
       in srgb,
       var(--color-primary-default) 20%,
       white
     );
-
-    &:active .containerBackplate {
-      background-color: var(--color-secondary-pressed);
-    }
   }
 }
 
-.checkbox > input:focus-visible + .checkboxCheckmarkContainer {
+input:focus-visible + .checkboxCheckmarkContainer {
   box-shadow: var(--shadow-focus);
 }
 
@@ -68,19 +67,8 @@
   color: white;
 }
 
-// when checked styles
-.checkbox:hover > input:checked + .checkboxCheckmarkContainer {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-}
-
-.checkbox:active > input:checked + .checkboxCheckmarkContainer {
-  background-color: var(--color-primary-pressed);
-  border-color: var(--color-primary-pressed);
-}
-
 // when not-checked styles
-.checkbox > input:not(:checked) + .checkboxCheckmarkContainer {
+input:not(:checked) ~ .checkboxCircle > .checkboxCheckmarkContainer {
   border-color: var(--color-divider-medium);
 }
 
@@ -100,10 +88,13 @@
   transform: scale(1);
 }
 
-.checkbox > input:checked ~ .checkboxCheckmarkContainer > .containerBackplate {
+input:checked
+  ~ .checkboxCircle
+  > .checkboxCheckmarkContainer
+  > .containerBackplate {
   transform: scale(0);
 }
 
-.checkbox > input:not(:checked) ~ .checkboxCheckmarkContainer > .checkmark {
+input:not(:checked) ~ .checkboxCheckmarkContainer > .checkmark {
   display: none;
 }
