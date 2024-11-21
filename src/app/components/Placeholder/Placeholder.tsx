@@ -27,7 +27,7 @@ export const Placeholder: React.FC<PlaceholderProps> = ({
       <img
         src={imageSrc}
         alt={imageAlt}
-        style={{ height: 96, objectFit: "contain" }}
+        style={{ width: 120, objectFit: "contain" }}
       />
 
       <Stack flexDirection="column" gap="4px" style={{ maxWidth: 280 }}>

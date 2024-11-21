@@ -16,10 +16,10 @@ import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import { PreviewCard } from "./components/Cards/PreviewCard/PreviewCard";
 import { motion, AnimatePresence } from "framer-motion";
 
-import TorchieGif from "./assets/images/happy_torchie.gif";
-import TorchieSurprised from "./assets/images/surprised_torchie.png";
-import TorchieCool from "./assets/images/cool_torchie.png";
 import TorchieLove from "./assets/images/love_torchie.png";
+import SwappyJump from "./assets/images/swappy-jump.gif";
+import SwappyDefault from "./assets/images/swappy-default.png";
+import SwappySad from "./assets/images/swappy-sad.png";
 
 import styles from "./app.module.scss";
 import { SettingsOutlined16 } from "./components/Icons/SettingsOutlined16";
@@ -82,12 +82,19 @@ const App = () => {
         case "SCAN_COMPLETE":
           setTimeout(() => setScanLoading(false), 1000);
           break;
+        case "RESET_OVERRIDES_STATUS": // New case to handle reset overrides status
+          setResetOverrides(pluginMessage.value); // Set the state with the retrieved value
+          break;
         default:
           break;
       }
     };
 
     window.onmessage = handleMessage;
+
+    // Request the resetOverrides status when the component mounts
+    parent.postMessage({ pluginMessage: { type: "GET_RESET_OVERRIDES" } }, "*");
+
     return () => (window.onmessage = null);
   }, []);
 
@@ -212,7 +219,7 @@ const App = () => {
           <div className={styles.overlay}>
             <Placeholder
               inverse
-              imageSrc={TorchieGif}
+              imageSrc={SwappyJump}
               imageAlt="Swapping"
               title="Swapping components"
               description="Just a moment, swapping now..."
@@ -255,11 +262,11 @@ const App = () => {
             imageSrc={
               nodesScanned
                 ? scanLoading
-                  ? TorchieGif
+                  ? SwappyJump
                   : success
                   ? TorchieLove
-                  : TorchieSurprised
-                : TorchieCool
+                  : SwappySad
+                : SwappyDefault
             }
             imageAlt={
               nodesScanned

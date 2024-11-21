@@ -32,9 +32,17 @@ let resetOverrides = true; // Default value
 let componentIdCounter = 0;
 
 // Function to initialize the plugin
-function initializePlugin() {
+async function initializePlugin() {
   console.clear();
   figma.showUI(__html__, pluginFrameSize);
+
+  // Retrieve the resetOverrides value from clientStorage
+  const storedResetOverrides = await figma.clientStorage.getAsync(
+    "resetOverrides"
+  );
+  resetOverrides =
+    storedResetOverrides !== undefined ? storedResetOverrides : true; // Default to true if not set
+  console.log("Retrieved resetOverrides from storage:", resetOverrides);
 }
 
 // Function to post messages to the UI
@@ -211,7 +219,14 @@ figma.ui.onmessage = async (msg) => {
     updateScannedComponents(msg.updatedComponents);
   } else if (msg.type === "RESET_OVERRIDES") {
     resetOverrides = msg.value; // Capture the value correctly
-    console.log("Reset overrides", resetOverrides);
+    await figma.clientStorage.setAsync("resetOverrides", resetOverrides); // Store the value in client storage
+    console.log("Reset overrides set to:", resetOverrides); // Log the new value
+  } else if (msg.type === "GET_RESET_OVERRIDES") {
+    // New message type
+    figma.ui.postMessage({
+      type: "RESET_OVERRIDES_STATUS",
+      value: resetOverrides,
+    }); // Send the current value back to the UI
   }
 };
 
