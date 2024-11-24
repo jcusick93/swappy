@@ -1,6 +1,6 @@
-import { getSelectedInstances } from "../app/utils/getSelectedInstances"; // Adjust the path as necessary
+import { getSelectedInstances } from "../app/utils/getSelectedInstances"; 
 import { getImageURL } from "../app/utils/getImageURL";
-import { componentMap } from "../app/data"; // Adjust the path as necessary
+import { componentMap } from "../app/data"; 
 
 // Clear console on reload
 console.clear();
@@ -33,7 +33,6 @@ let componentIdCounter = 0;
 
 // Function to initialize the plugin
 async function initializePlugin() {
-<<<<<<< Updated upstream
   console.clear();
   figma.showUI(__html__, pluginFrameSize);
 
@@ -44,10 +43,6 @@ async function initializePlugin() {
   resetOverrides =
     storedResetOverrides !== undefined ? storedResetOverrides : true; // Default to true if not set
   console.log("Retrieved resetOverrides from storage:", resetOverrides);
-=======
-  await console.clear();
-  await figma.loadAllPagesAsync();
->>>>>>> Stashed changes
 }
 
 // Function to post messages to the UI
@@ -110,10 +105,7 @@ async function scanComponents(state: string) {
   let allNodes: SceneNode[] = [];
   
   if (state === "bySelection") {
-    // Filter selection to only include instances
-    allNodes = figma.currentPage.selection.filter(
-      (node): node is InstanceNode => node.type === "INSTANCE"
-    );
+    allNodes = await getSelectedInstances(figma.currentPage.selection, componentMap);
   } else {
     allNodes = figma.currentPage.findAll((n) => n.type === "INSTANCE");
   }
@@ -121,7 +113,6 @@ async function scanComponents(state: string) {
   // Process each component in the componentMap
   for (const component of componentMap) {
     const { oldParentKey, variants } = component;
-    const oldParentKeys = componentMap.map(comp => comp.oldParentKey);
 
     // Filter nodes
     const filteredNodes: InstanceNode[] = [];

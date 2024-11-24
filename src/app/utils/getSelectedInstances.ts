@@ -3,9 +3,17 @@ export async function getSelectedInstances(selection, componentMap) {
   const instances = [];
 
   const findInstancesInChildren = async (node) => {
-    // Check if the current node is an instance and is an old component
     if (node.type === "INSTANCE") {
-      const isOld = await isOldComponent(node, componentMap);
+      const mainComponent = await node.getMainComponentAsync();
+      if (!mainComponent) return;
+
+      // Check if the component or its parent matches any oldParentKey
+      const isOld = componentMap.some(component => 
+        mainComponent.key === component.oldParentKey ||
+        (mainComponent.parent?.type === "COMPONENT" && mainComponent.parent.key === component.oldParentKey) ||
+        (mainComponent.parent?.type === "COMPONENT_SET" && mainComponent.parent.key === component.oldParentKey)
+      );
+
       if (isOld) {
         instances.push(node);
         console.log("Found old instance:", node);
@@ -28,17 +36,4 @@ export async function getSelectedInstances(selection, componentMap) {
 
   console.log("All found instances:", instances);
   return instances;
-}
-
-// Helper function to determine if a component is old
-async function isOldComponent(instance, componentMap) {
-  const mainComponent = await instance.getMainComponentAsync();
-  return componentMap.some((component) => {
-    return (
-      mainComponent &&
-      (mainComponent.key === component.oldParentKey ||
-        (mainComponent.parent?.type === "COMPONENT" && mainComponent.parent.key === component.oldParentKey) ||
-        (mainComponent.parent?.type === "COMPONENT_SET" && mainComponent.parent.key === component.oldParentKey))
-    );
-  });
 }
