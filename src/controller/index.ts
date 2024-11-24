@@ -33,6 +33,7 @@ let componentIdCounter = 0;
 
 // Function to initialize the plugin
 async function initializePlugin() {
+<<<<<<< Updated upstream
   console.clear();
   figma.showUI(__html__, pluginFrameSize);
 
@@ -43,6 +44,10 @@ async function initializePlugin() {
   resetOverrides =
     storedResetOverrides !== undefined ? storedResetOverrides : true; // Default to true if not set
   console.log("Retrieved resetOverrides from storage:", resetOverrides);
+=======
+  await console.clear();
+  await figma.loadAllPagesAsync();
+>>>>>>> Stashed changes
 }
 
 // Function to post messages to the UI
@@ -62,27 +67,30 @@ async function processVariants(
 
   if (newComponent) {
     for (const node of nodes) {
-      if (node.type === "INSTANCE" && node.mainComponent) {
-        const name = node.mainComponent.name;
+      if (node.type === "INSTANCE") {
+        const mainComponent = await node.getMainComponentAsync(); // Use async method to get main component
+        if (mainComponent) {
+          const name = mainComponent.name;
 
-        const allKeywordsPresent = keywords.every((keyword) =>
-          name.includes(keyword)
-        );
+          const allKeywordsPresent = keywords.every((keyword) =>
+            name.includes(keyword)
+          );
 
-        if (allKeywordsPresent) {
-          const oldImageSrc = await getImageURL(node);
-          const newImageSrc = await getImageURL(newComponent);
+          if (allKeywordsPresent) {
+            const oldImageSrc = await getImageURL(node);
+            const newImageSrc = await getImageURL(newComponent);
 
-          // Add component with old/new images and checked state to scannedComponents
-          scannedComponents.push({
-            id: componentIdCounter++, // Increment and assign a unique id
-            oldImage: oldImageSrc,
-            newImage: newImageSrc,
-            node,
-            newComponentKey,
-            checked: true, // Default checked state
-            groupName, // Store the groupName in each scanned component
-          });
+            // Add component with old/new images and checked state to scannedComponents
+            scannedComponents.push({
+              id: componentIdCounter++, // Increment and assign a unique id
+              oldImage: oldImageSrc,
+              newImage: newImageSrc,
+              node,
+              newComponentKey,
+              checked: true, // Default checked state
+              groupName, // Store the groupName in each scanned component
+            });
+          }
         }
       }
     }
@@ -95,46 +103,62 @@ async function scanComponents(state: string) {
   scannedComponents = [];
   componentIdCounter = 0;
 
-  const allNodes =
-    state === "bySelection"
-      ? getSelectedInstances(figma.currentPage.selection, componentMap)
-      : figma.currentPage.findAll((n) => n.type === "INSTANCE");
+  // Load the current page explicitly
+  await figma.currentPage.loadAsync();
+
+  // Get and load all nodes
+  let allNodes: SceneNode[] = [];
+  
+  if (state === "bySelection") {
+    // Filter selection to only include instances
+    allNodes = figma.currentPage.selection.filter(
+      (node): node is InstanceNode => node.type === "INSTANCE"
+    );
+  } else {
+    allNodes = figma.currentPage.findAll((n) => n.type === "INSTANCE");
+  }
 
   // Process each component in the componentMap
   for (const component of componentMap) {
     const { oldParentKey, variants } = component;
+    const oldParentKeys = componentMap.map(comp => comp.oldParentKey);
 
-    // Create an array of oldParentKeys from componentMap
-    const oldParentKeys = componentMap.map(
-      (component) => component.oldParentKey
-    );
-    // Filter nodes that belong to the current component and are not children (i.e., have no parent)
-    const nodes = allNodes.filter(
-      (node): node is InstanceNode =>
-        node.type === "INSTANCE" &&
-        // Check if the main component key matches the old parent key
-        (node.mainComponent?.key === oldParentKey ||
-          node.mainComponent?.parent?.key === oldParentKey) &&
-        // Ensure the parent is not an instance
-        node.parent &&
-        // Ensure the parent's keys do not match any keys in the parent array
-        !oldParentKeys.includes(node.parent?.mainComponent?.key)
-    );
+    // Filter nodes
+    const filteredNodes: InstanceNode[] = [];
+    
+    for (const node of allNodes) {
+      if (node.type === "INSTANCE") {
+        const mainComponent = await node.getMainComponentAsync();
+        if (!mainComponent) continue;
 
+        // Check if the component or its parent matches the oldParentKey
+        const isMatch = 
+          mainComponent.key === oldParentKey ||
+          (mainComponent.parent?.type === "COMPONENT" && mainComponent.parent.key === oldParentKey) ||
+          (mainComponent.parent?.type === "COMPONENT_SET" && mainComponent.parent.key === oldParentKey);
+
+        if (isMatch) {
+          filteredNodes.push(node);
+          console.log('Node matched and added:', node.name);
+        }
+      }
+    }
+
+    // Process variants
     for (const variant of variants) {
-      await processVariants(variant, nodes, component.groupName); // Pass groupName here
+      await processVariants(variant, filteredNodes, component.groupName);
     }
   }
 
-  // Sends message to update state in App
+  // Send messages to UI
   postMessageToUI("COMPONENT_IMAGES", {
     componentImages: scannedComponents.map(
       ({ id, oldImage, newImage, checked, groupName }) => ({
-        id, // Include the id
+        id,
         oldImage,
         newImage,
-        checked, // Include the checked state
-        groupName, // Include groupName in the payload
+        checked,
+        groupName,
       })
     ),
   });
