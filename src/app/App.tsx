@@ -15,11 +15,10 @@ import {
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import { PreviewCard } from "./components/Cards/PreviewCard/PreviewCard";
 import { motion, AnimatePresence } from "framer-motion";
-
-import TorchieLove from "./assets/images/love_torchie.png";
 import SwappyJump from "./assets/images/swappy-jump.gif";
 import SwappyDefault from "./assets/images/swappy-default.png";
 import SwappySad from "./assets/images/swappy-sad.png";
+import SwappyLove from "./assets/images/swappy-love.png";
 
 import styles from "./app.module.scss";
 import { SettingsOutlined16 } from "./components/Icons/SettingsOutlined16";
@@ -264,7 +263,7 @@ const App = () => {
                 ? scanLoading
                   ? SwappyJump
                   : success
-                  ? TorchieLove
+                  ? SwappyLove
                   : SwappySad
                 : SwappyDefault
             }

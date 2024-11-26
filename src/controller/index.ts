@@ -1,6 +1,6 @@
-import { getSelectedInstances } from "../app/utils/getSelectedInstances"; 
+import { getSelectedInstances } from "../app/utils/getSelectedInstances";
 import { getImageURL } from "../app/utils/getImageURL";
-import { componentMap } from "../app/data"; 
+import { componentMap } from "../app/data";
 
 // Clear console on reload
 console.clear();
@@ -97,15 +97,20 @@ async function scanComponents(state: string) {
   console.log("Scan state received:", state);
   scannedComponents = [];
   componentIdCounter = 0;
+ 
+ 
 
   // Load the current page explicitly
   await figma.currentPage.loadAsync();
 
   // Get and load all nodes
   let allNodes: SceneNode[] = [];
-  
+
   if (state === "bySelection") {
-    allNodes = await getSelectedInstances(figma.currentPage.selection, componentMap);
+    allNodes = await getSelectedInstances(
+      figma.currentPage.selection,
+      componentMap
+    );
   } else {
     allNodes = figma.currentPage.findAll((n) => n.type === "INSTANCE");
   }
@@ -116,21 +121,35 @@ async function scanComponents(state: string) {
 
     // Filter nodes
     const filteredNodes: InstanceNode[] = [];
-    
+    const oldParentKeys = componentMap.map(comp => comp.oldParentKey);
+    console.log("Old Parent Keys:", oldParentKeys);
+
     for (const node of allNodes) {
       if (node.type === "INSTANCE") {
         const mainComponent = await node.getMainComponentAsync();
         if (!mainComponent) continue;
 
-        // Check if the component or its parent matches the oldParentKey
-        const isMatch = 
-          mainComponent.key === oldParentKey ||
-          (mainComponent.parent?.type === "COMPONENT" && mainComponent.parent.key === oldParentKey) ||
-          (mainComponent.parent?.type === "COMPONENT_SET" && mainComponent.parent.key === oldParentKey);
+        // Check parent
+        let shouldInclude = true;
+        if (node.parent.type === "INSTANCE") {
+            const parentMainComponent = await (node.parent as InstanceNode).getMainComponentAsync();
+            if (parentMainComponent && oldParentKeys.includes(parentMainComponent.key)) {
+                shouldInclude = false;
+            }
+        }
 
-        if (isMatch) {
-          filteredNodes.push(node);
-          console.log('Node matched and added:', node.name);
+        // Only proceed if we should include this node
+        if (shouldInclude) {
+            const isMatch =
+              mainComponent.key === oldParentKey ||
+              (mainComponent.parent?.type === "COMPONENT" &&
+                mainComponent.parent.key === oldParentKey) ||
+              (mainComponent.parent?.type === "COMPONENT_SET" &&
+                mainComponent.parent.key === oldParentKey);
+
+            if (isMatch) {
+              filteredNodes.push(node);
+            }
         }
       }
     }
