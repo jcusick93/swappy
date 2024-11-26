@@ -23,6 +23,7 @@ let scannedComponents: {
   oldImage?: string; // Optional: to hold old image URL if needed
   newImage?: string; // Optional: to hold new image URL if needed
   groupName: string; // Added groupName to the scanned component structure
+  originalProperties?: any; // Optional: to hold original properties for later use
 }[] = [];
 
 // Variable to hold the resetOverrides state
@@ -50,13 +51,12 @@ function postMessageToUI(type: string, payload: any) {
   figma.ui.postMessage({ type, ...payload });
 }
 
-// Function to process variants for a component
-async function processVariants(
-  variant: any,
-  nodes: InstanceNode[], // Change to InstanceNode[]
-  groupName: string
+// Function to process components
+async function processComponent(
+  component: any,
+  nodes: InstanceNode[] // Change to InstanceNode[]
 ) {
-  const { newComponentKey, keywords } = variant; // Adjusted to pull from variant
+  const { newComponentKey } = component; // Pull newComponentKey from the component
 
   const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
 
@@ -65,27 +65,24 @@ async function processVariants(
       if (node.type === "INSTANCE") {
         const mainComponent = await node.getMainComponentAsync(); // Use async method to get main component
         if (mainComponent) {
-          const name = mainComponent.name;
+          const oldImageSrc = await getImageURL(node);
+          const newImageSrc = await getImageURL(newComponent);
 
-          const allKeywordsPresent = keywords.every((keyword) =>
-            name.includes(keyword)
-          );
+          // Retrieve the properties from the original instance node
+          const originalProperties = node.componentProperties; // Get properties from the original instance
+          console.log("Original Instance Properties:", originalProperties); // Log the properties of the original 
 
-          if (allKeywordsPresent) {
-            const oldImageSrc = await getImageURL(node);
-            const newImageSrc = await getImageURL(newComponent);
-
-            // Add component with old/new images and checked state to scannedComponents
-            scannedComponents.push({
-              id: componentIdCounter++, // Increment and assign a unique id
-              oldImage: oldImageSrc,
-              newImage: newImageSrc,
-              node,
-              newComponentKey,
-              checked: true, // Default checked state
-              groupName, // Store the groupName in each scanned component
-            });
-          }
+          // Add component with old/new images and checked state to scannedComponents
+          scannedComponents.push({
+            id: componentIdCounter++, // Increment and assign a unique id
+            oldImage: oldImageSrc,
+            newImage: newImageSrc,
+            node,
+            newComponentKey,
+            checked: true, // Default checked state
+            groupName: component.groupName, // Use groupName from the component
+            originalProperties, // Store original properties for later use
+          });
         }
       }
     }
@@ -97,8 +94,6 @@ async function scanComponents(state: string) {
   console.log("Scan state received:", state);
   scannedComponents = [];
   componentIdCounter = 0;
- 
- 
 
   // Load the current page explicitly
   await figma.currentPage.loadAsync();
@@ -115,14 +110,15 @@ async function scanComponents(state: string) {
     allNodes = figma.currentPage.findAll((n) => n.type === "INSTANCE");
   }
 
+  // Create an array of all component old keys
+  const oldKeys = componentMap.map(component => component.oldParentKey);
+
   // Process each component in the componentMap
   for (const component of componentMap) {
-    const { oldParentKey, variants } = component;
+    const { oldParentKey } = component;
 
     // Filter nodes
     const filteredNodes: InstanceNode[] = [];
-    const oldParentKeys = componentMap.map(comp => comp.oldParentKey);
-    console.log("Old Parent Keys:", oldParentKeys);
 
     for (const node of allNodes) {
       if (node.type === "INSTANCE") {
@@ -132,32 +128,30 @@ async function scanComponents(state: string) {
         // Check parent
         let shouldInclude = true;
         if (node.parent.type === "INSTANCE") {
-            const parentMainComponent = await (node.parent as InstanceNode).getMainComponentAsync();
-            if (parentMainComponent && oldParentKeys.includes(parentMainComponent.key)) {
-                shouldInclude = false;
-            }
+          const parentMainComponent = await (node.parent as InstanceNode).getMainComponentAsync();
+          if (parentMainComponent && oldKeys.includes(parentMainComponent.key)) {
+            shouldInclude = false; // Discard if parent key exists in oldKeys
+          }
         }
 
         // Only proceed if we should include this node
         if (shouldInclude) {
-            const isMatch =
-              mainComponent.key === oldParentKey ||
-              (mainComponent.parent?.type === "COMPONENT" &&
-                mainComponent.parent.key === oldParentKey) ||
-              (mainComponent.parent?.type === "COMPONENT_SET" &&
-                mainComponent.parent.key === oldParentKey);
+          const isMatch =
+            mainComponent.key === oldParentKey ||
+            (mainComponent.parent?.type === "COMPONENT" &&
+              mainComponent.parent.key === oldParentKey) ||
+            (mainComponent.parent?.type === "COMPONENT_SET" &&
+              mainComponent.parent.key === oldParentKey);
 
-            if (isMatch) {
-              filteredNodes.push(node);
-            }
+          if (isMatch) {
+            filteredNodes.push(node);
+          }
         }
       }
     }
 
-    // Process variants
-    for (const variant of variants) {
-      await processVariants(variant, filteredNodes, component.groupName);
-    }
+    // Process the component
+    await processComponent(component, filteredNodes);
   }
 
   // Send messages to UI
@@ -184,7 +178,7 @@ async function swapComponents(checkedStates: boolean[]) {
   );
 
   for (const component of toSwapComponents) {
-    const { node, newComponentKey } = component;
+    const { node, newComponentKey, originalProperties } = component; // Retrieve original properties
     const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
 
     if (newComponent && node.type === "INSTANCE") {
@@ -193,6 +187,35 @@ async function swapComponents(checkedStates: boolean[]) {
         instanceNode.resetOverrides(); // Reset overrides if the flag is true
       }
       instanceNode.swapComponent(newComponent);
+
+      // Retrieve the new instance node after the swap
+      const newInstanceNode = node as InstanceNode; // Ensure this is the new instance node
+      console.log("New Instance Node:", newInstanceNode); // Log the new instance node
+
+      // Set the original properties on the new instance node dynamically
+      const formattedProperties: any = {}; // Create an empty object to hold properties
+
+      // Iterate over originalProperties to set dynamic properties
+      for (const key in originalProperties) {
+        if (originalProperties.hasOwnProperty(key)) {
+          const propValue = originalProperties[key];
+
+          // Log the key and value to check their types
+          console.log(`Key: ${key}, Value:`, propValue);
+          
+          // Check if the value is an object and extract the 'value' property if it exists
+          if (typeof propValue === 'object' && propValue !== null && 'value' in propValue) {
+            formattedProperties[key] = propValue.value; // Use the 'value' property
+          } else if (typeof propValue === 'string' || typeof propValue === 'boolean') {
+            formattedProperties[key] = propValue; // Directly assign if it's a valid type
+          } else {
+            console.warn(`Invalid type for key "${key}": expected string or boolean, received ${typeof propValue}`);
+          }
+        }
+      }
+
+      await newInstanceNode.setProperties(formattedProperties); // Use setProperties method
+      console.log("Applied Original Instance Properties:", formattedProperties); // Log the applied properties
     } else {
       console.warn(`Node is not an instance: ${node.name}`);
     }
