@@ -24,6 +24,7 @@ let scannedComponents: {
   newImage?: string; // Optional: to hold new image URL if needed
   groupName: string; // Added groupName to the scanned component structure
   originalProperties?: any; // Optional: to hold original properties for later use
+  appliedImage?: string; // Optional: to hold applied image URL if needed
 }[] = [];
 
 // Variable to hold the resetOverrides state
@@ -68,20 +69,46 @@ async function processComponent(
           const oldImageSrc = await getImageURL(node);
           const newImageSrc = await getImageURL(newComponent);
 
+          // Create a temporary instance of the new component
+          const tempInstance = await newComponent.createInstance();
+          
           // Retrieve the properties from the original instance node
           const originalProperties = node.componentProperties; // Get properties from the original instance
           console.log("Original Instance Properties:", originalProperties); // Log the properties of the original 
+
+          // Map originalProperties to the expected format for setProperties
+          const formattedProperties: { [key: string]: string | boolean } = {};
+          for (const key in originalProperties) {
+            if (originalProperties.hasOwnProperty(key)) {
+              formattedProperties[key] = originalProperties[key].value; // Use the 'value' property
+            }
+          }
+
+          // Apply the original properties to the temporary instance
+          await tempInstance.setProperties(formattedProperties);
+
+          // Wait for a short duration to allow the properties to be applied
+          await new Promise(resolve => setTimeout(resolve, 100)); // 100 ms delay
+
+          // Get the image URL of the temporary instance after properties are applied
+          const appliedImageSrc = await getImageURL(tempInstance);
+          // Log the new image URL
+          console.log("New Image URL after applying properties:", appliedImageSrc);
+
+          // Clean up the temporary instance
+          tempInstance.remove();
 
           // Add component with old/new images and checked state to scannedComponents
           scannedComponents.push({
             id: componentIdCounter++, // Increment and assign a unique id
             oldImage: oldImageSrc,
-            newImage: newImageSrc,
+            newImage: appliedImageSrc, // Update newImage to use the Base64 image URL
             node,
             newComponentKey,
             checked: true, // Default checked state
             groupName: component.groupName, // Use groupName from the component
             originalProperties, // Store original properties for later use
+            appliedImage: appliedImageSrc, // Store the applied image URL
           });
         }
       }
