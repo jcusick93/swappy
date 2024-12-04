@@ -52,70 +52,6 @@ function postMessageToUI(type: string, payload: any) {
   figma.ui.postMessage({ type, ...payload });
 }
 
-// Function to process components
-async function processComponent(
-  component: any,
-  nodes: InstanceNode[] // Change to InstanceNode[]
-) {
-  const { newComponentKey } = component; // Pull newComponentKey from the component
-
-  const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
-
-  if (newComponent) {
-    for (const node of nodes) {
-      if (node.type === "INSTANCE") {
-        const mainComponent = await node.getMainComponentAsync(); // Use async method to get main component
-        if (mainComponent) {
-          const oldImageSrc = await getImageURL(node);
-          const newImageSrc = await getImageURL(newComponent);
-
-          // Create a temporary instance of the new component
-          const tempInstance = await newComponent.createInstance();
-          
-          // Retrieve the properties from the original instance node
-          const originalProperties = node.componentProperties; // Get properties from the original instance
-          console.log("Original Instance Properties:", originalProperties); // Log the properties of the original 
-
-          // Map originalProperties to the expected format for setProperties
-          const formattedProperties: { [key: string]: string | boolean } = {};
-          for (const key in originalProperties) {
-            if (originalProperties.hasOwnProperty(key)) {
-              formattedProperties[key] = originalProperties[key].value; // Use the 'value' property
-            }
-          }
-
-          // Apply the original properties to the temporary instance
-          await tempInstance.setProperties(formattedProperties);
-
-          // Wait for a short duration to allow the properties to be applied
-          await new Promise(resolve => setTimeout(resolve, 100)); // 100 ms delay
-
-          // Get the image URL of the temporary instance after properties are applied
-          const appliedImageSrc = await getImageURL(tempInstance);
-          // Log the new image URL
-          console.log("New Image URL after applying properties:", appliedImageSrc);
-
-          // Clean up the temporary instance
-          tempInstance.remove();
-
-          // Add component with old/new images and checked state to scannedComponents
-          scannedComponents.push({
-            id: componentIdCounter++, // Increment and assign a unique id
-            oldImage: oldImageSrc,
-            newImage: appliedImageSrc, // Update newImage to use the Base64 image URL
-            node,
-            newComponentKey,
-            checked: true, // Default checked state
-            groupName: component.groupName, // Use groupName from the component
-            originalProperties, // Store original properties for later use
-            appliedImage: appliedImageSrc, // Store the applied image URL
-          });
-        }
-      }
-    }
-  }
-}
-
 // Function to scan components
 async function scanComponents(state: string) {
   console.log("Scan state received:", state);
@@ -138,7 +74,31 @@ async function scanComponents(state: string) {
   }
 
   // Create an array of all component old keys
-  const oldKeys = componentMap.map(component => component.oldParentKey);
+  const oldKeys = componentMap.map((component) => component.oldParentKey);
+
+  // Function to recursively check all ancestors
+  async function hasAncestorWithOldKey(node: InstanceNode): Promise<boolean> {
+    let currentNode: BaseNode | null = node.parent;
+    while (currentNode) {
+      if (currentNode.type === "INSTANCE") {
+        const mainComponent = await (
+          currentNode as InstanceNode
+        ).getMainComponentAsync();
+        if (
+          mainComponent &&
+          oldKeys.includes(
+            mainComponent.parent
+              ? (mainComponent.parent as ComponentNode).key
+              : mainComponent.key
+          )
+        ) {
+          return true;
+        }
+      }
+      currentNode = currentNode.parent;
+    }
+    return false;
+  }
 
   // Process each component in the componentMap
   for (const component of componentMap) {
@@ -146,20 +106,15 @@ async function scanComponents(state: string) {
 
     // Filter nodes
     const filteredNodes: InstanceNode[] = [];
+    const nodeIds = new Set<string>(); // Set to track unique node IDs
 
     for (const node of allNodes) {
       if (node.type === "INSTANCE") {
         const mainComponent = await node.getMainComponentAsync();
         if (!mainComponent) continue;
 
-        // Check parent
-        let shouldInclude = true;
-        if (node.parent.type === "INSTANCE") {
-          const parentMainComponent = await (node.parent as InstanceNode).getMainComponentAsync();
-          if (parentMainComponent && oldKeys.includes(parentMainComponent.key)) {
-            shouldInclude = false; // Discard if parent key exists in oldKeys
-          }
-        }
+        // Check ancestors
+        const shouldInclude = !(await hasAncestorWithOldKey(node));
 
         // Only proceed if we should include this node
         if (shouldInclude) {
@@ -170,8 +125,9 @@ async function scanComponents(state: string) {
             (mainComponent.parent?.type === "COMPONENT_SET" &&
               mainComponent.parent.key === oldParentKey);
 
-          if (isMatch) {
+          if (isMatch && !nodeIds.has(node.id)) {
             filteredNodes.push(node);
+            nodeIds.add(node.id); // Add node ID to the Set
           }
         }
       }
@@ -196,6 +152,40 @@ async function scanComponents(state: string) {
   postMessageToUI("SCAN_COMPLETE", {});
 }
 
+// Function to process components
+async function processComponent(
+  component: any,
+  nodes: InstanceNode[] // Change to InstanceNode[]
+) {
+  const { newComponentKey } = component; // Pull newComponentKey from the component
+
+  const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
+
+  if (newComponent) {
+    for (const node of nodes) {
+      if (node.type === "INSTANCE") {
+        const mainComponent = await node.getMainComponentAsync(); // Use async method to get main component
+        if (mainComponent) {
+          const oldImageSrc = await getImageURL(node);
+          const newImageSrc = await getImageURL(newComponent);
+
+          // Add component with old/new images and checked state to scannedComponents
+          scannedComponents.push({
+            id: componentIdCounter++, // Increment and assign a unique id
+            oldImage: oldImageSrc,
+            newImage: newImageSrc, // Use the default image of the new component
+            node,
+            newComponentKey,
+            checked: true, // Default checked state
+            groupName: component.groupName, // Use groupName from the component
+            appliedImage: newImageSrc, // Store the applied image URL
+          });
+        }
+      }
+    }
+  }
+}
+
 // Function to swap components
 async function swapComponents(checkedStates: boolean[]) {
   console.log("Swapping components...");
@@ -205,18 +195,35 @@ async function swapComponents(checkedStates: boolean[]) {
   );
 
   for (const component of toSwapComponents) {
-    const { node, newComponentKey, originalProperties } = component; // Retrieve original properties
+    const { node, newComponentKey } = component;
+
+    // Check if the node still exists
+    const existingNode = await figma.getNodeByIdAsync(node.id);
+    if (!existingNode) {
+      console.warn(`Node with id ${node.id} does not exist.`);
+      continue;
+    }
+
+    // Ensure the node is of type INSTANCE
+    if (existingNode.type !== "INSTANCE") {
+      console.warn(`Node with id ${node.id} is not an instance.`);
+      continue;
+    }
+
+    const instanceNode = existingNode as InstanceNode;
+    const originalProperties = instanceNode.componentProperties; // Get properties from the original instance
+    console.log("Original Instance Properties:", originalProperties); // Log the properties of the original
+
     const newComponent = await figma.importComponentByKeyAsync(newComponentKey);
 
-    if (newComponent && node.type === "INSTANCE") {
-      const instanceNode = node as InstanceNode;
+    if (newComponent) {
       if (resetOverrides) {
         instanceNode.resetOverrides(); // Reset overrides if the flag is true
       }
       instanceNode.swapComponent(newComponent);
 
       // Retrieve the new instance node after the swap
-      const newInstanceNode = node as InstanceNode; // Ensure this is the new instance node
+      const newInstanceNode = instanceNode; // Ensure this is the new instance node
       console.log("New Instance Node:", newInstanceNode); // Log the new instance node
 
       // Set the original properties on the new instance node dynamically
@@ -229,22 +236,40 @@ async function swapComponents(checkedStates: boolean[]) {
 
           // Log the key and value to check their types
           console.log(`Key: ${key}, Value:`, propValue);
-          
+
           // Check if the value is an object and extract the 'value' property if it exists
-          if (typeof propValue === 'object' && propValue !== null && 'value' in propValue) {
+          if (
+            typeof propValue === "object" &&
+            propValue !== null &&
+            "value" in propValue
+          ) {
             formattedProperties[key] = propValue.value; // Use the 'value' property
-          } else if (typeof propValue === 'string' || typeof propValue === 'boolean') {
+          } else if (
+            typeof propValue === "string" ||
+            typeof propValue === "boolean"
+          ) {
             formattedProperties[key] = propValue; // Directly assign if it's a valid type
           } else {
-            console.warn(`Invalid type for key "${key}": expected string or boolean, received ${typeof propValue}`);
+            console.warn(
+              `Invalid type for key "${key}": expected string or boolean, received ${typeof propValue}`
+            );
           }
         }
       }
 
-      await newInstanceNode.setProperties(formattedProperties); // Use setProperties method
-      console.log("Applied Original Instance Properties:", formattedProperties); // Log the applied properties
+      try {
+        await newInstanceNode.setProperties(formattedProperties); // Use setProperties method
+        console.log(
+          "Applied Original Instance Properties:",
+          formattedProperties
+        ); // Log the applied properties
+      } catch (error) {
+        console.error("Error setting properties on new instance node:", error);
+      }
     } else {
-      console.warn(`Node is not an instance: ${node.name}`);
+      console.warn(
+        `New component with key ${newComponentKey} could not be imported.`
+      );
     }
   }
 
