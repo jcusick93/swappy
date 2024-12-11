@@ -4,6 +4,7 @@ import { IconButton } from "../IconButton/IconButton";
 import { motion } from "framer-motion";
 import styles from "./styles.module.scss";
 import { ArrowLeftOutlined16 } from "../Icons/ArrowLeftOutlined16";
+import { Tooltip } from "../Tooltip/Tooltip";
 
 export interface DrawerProps {
   children?: React.ReactNode;
@@ -63,11 +64,13 @@ export const Drawer: React.FC<DrawerProps> = ({
         gap="4px"
         className={styles.drawerHeader}
       >
-        <IconButton
-          label="Close drawer"
-          icon={<ArrowLeftOutlined16 />}
-          onClick={handleClose}
-        />
+        <Tooltip label="Close drawer" position="right">
+          <IconButton
+            label="Close drawer"
+            icon={<ArrowLeftOutlined16 />}
+            onClick={handleClose}
+          />
+        </Tooltip>
         <h2 className={styles.drawerTitle}>{title}</h2>
       </Stack>
 

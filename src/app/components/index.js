@@ -13,3 +13,4 @@ export * from "./Accordian";
 export * from "./IconButton";
 export * from "./Drawer";
 export * from "./Switch";
+export * from "./Tooltip";

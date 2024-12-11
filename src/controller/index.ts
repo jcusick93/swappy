@@ -27,24 +27,24 @@ let scannedComponents: {
   appliedImage?: string; // Optional: to hold applied image URL if needed
 }[] = [];
 
-// Variable to hold the resetOverrides state
-let resetOverrides = true; // Default value
+// Cache for resetOverrides
+let resetOverrides: boolean | undefined;
 
 // Initialize a counter for generating unique IDs
 let componentIdCounter = 0;
 
 // Function to initialize the plugin
 async function initializePlugin() {
-  console.clear();
-  figma.showUI(__html__, pluginFrameSize);
+  if (resetOverrides === undefined) {
+    const storedResetOverrides = await figma.clientStorage.getAsync(
+      "resetOverrides"
+    );
+    resetOverrides =
+      storedResetOverrides !== undefined ? storedResetOverrides : true; // Default to true if not set
+    console.log("Retrieved resetOverrides from storage:", resetOverrides);
+  }
 
-  // Retrieve the resetOverrides value from clientStorage
-  const storedResetOverrides = await figma.clientStorage.getAsync(
-    "resetOverrides"
-  );
-  resetOverrides =
-    storedResetOverrides !== undefined ? storedResetOverrides : true; // Default to true if not set
-  console.log("Retrieved resetOverrides from storage:", resetOverrides);
+  figma.showUI(__html__, pluginFrameSize);
 }
 
 // Function to post messages to the UI

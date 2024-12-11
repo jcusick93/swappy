@@ -11,6 +11,7 @@ import {
   Accordian,
   IconButton,
   Drawer,
+  Tooltip,
 } from "./components";
 import { RefreshOutlined16 } from "./components/Icons/RefreshOutlined16";
 import { PreviewCard } from "./components/Cards/PreviewCard/PreviewCard";
@@ -51,7 +52,6 @@ const App = () => {
   const [openDrawer, setOpenDrawer] = React.useState(false);
   // Reset overrides state
   const [resetOverrides, setResetOverrides] = React.useState(true);
-  
 
   const swapButtonDisabled =
     scanLoading ||
@@ -179,7 +179,6 @@ const App = () => {
             checked={resetOverrides}
             onChange={handleResetOverridesClick}
           />
- 
         </Stack>
       </Drawer>
       <Header>
@@ -197,12 +196,14 @@ const App = () => {
             By selection
           </SegmentedControlOption>
         </SegmentedControl>
-        <IconButton
-          label="Settings"
-          icon={<SettingsOutlined16 />}
-          disabled={scanLoading || swapLoading}
-          onClick={() => setOpenDrawer(true)}
-        />
+        <Tooltip label="Settings" position="left">
+          <IconButton
+            label="Settings"
+            icon={<SettingsOutlined16 />}
+            disabled={scanLoading || swapLoading}
+            onClick={() => setOpenDrawer(true)}
+          />
+        </Tooltip>
       </Header>
 
       <Body>
