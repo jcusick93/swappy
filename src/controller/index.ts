@@ -54,8 +54,8 @@ function postMessageToUI(type: string, payload: any) {
 
 // Function to scan components
 async function scanComponents(state: string) {
-  console.log("Scan state received:", state);
   scannedComponents = [];
+  console.log("Scan state received:", state);
   componentIdCounter = 0;
 
   // Load the current page explicitly
@@ -74,68 +74,106 @@ async function scanComponents(state: string) {
   }
 
   // Create an array of all component old keys
-  const oldKeys = componentMap.map((component) => component.oldParentKey);
+  const oldKeys = componentMap
+    .map((component) => [component.oldParentKey, component.newComponentKey])
+    .join();
 
-  // Function to recursively check all ancestors
-  async function hasAncestorWithOldKey(node: InstanceNode): Promise<boolean> {
-    let currentNode: BaseNode | null = node.parent;
-    while (currentNode) {
-      if (currentNode.type === "INSTANCE") {
-        const mainComponent = await (
-          currentNode as InstanceNode
-        ).getMainComponentAsync();
-        if (
-          mainComponent &&
-          oldKeys.includes(
-            mainComponent.parent
-              ? (mainComponent.parent as ComponentNode).key
-              : mainComponent.key
-          )
-        ) {
-          return true;
-        }
-      }
-      currentNode = currentNode.parent;
+  const memoizedAnswers = {};
+
+  async function memoizedHasAncestorWithOldKey(
+    node: BaseNode
+  ): Promise<boolean> {
+    if (node.id in memoizedAnswers) {
+      return memoizedAnswers[node.id];
     }
-    return false;
+
+    const answer = await hasAncestorWithOldKey(node);
+    memoizedAnswers[node.id] = answer;
+
+    return answer;
   }
 
+  // Function to recursively check all ancestors
+  async function hasAncestorWithOldKey(node: BaseNode): Promise<boolean> {
+    const parentNode: BaseNode | null = node.parent;
+
+    if (!parentNode) {
+      return false;
+    }
+
+    if (parentNode.type === "INSTANCE") {
+      const mainComponent = await (
+        parentNode as InstanceNode
+      ).getMainComponentAsync();
+      if (
+        mainComponent &&
+        oldKeys.includes(
+          mainComponent.parent
+            ? (mainComponent.parent as ComponentNode).key
+            : mainComponent.key
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return await memoizedHasAncestorWithOldKey(parentNode);
+  }
+
+  const matchedNodeIds = new Set<string>(); // Set to track unique node IDs
+  const matchedNodes = [] as { node: InstanceNode; matchedOldKey: string }[];
+
+  const oldParentKeys = componentMap.map((component) => component.oldParentKey);
+
+  for (const node of allNodes) {
+    if (node.type === "INSTANCE") {
+      const mainComponent = await node.getMainComponentAsync();
+      if (!mainComponent) continue;
+
+      // Check ancestors
+      if (await memoizedHasAncestorWithOldKey(node)) continue;
+
+      let matchedOldKey = null;
+
+      if (oldParentKeys.includes(mainComponent.key)) {
+        matchedOldKey = mainComponent.key;
+      } else if (
+        mainComponent.parent?.type === "COMPONENT" &&
+        oldParentKeys.includes(mainComponent.parent.key)
+      ) {
+        matchedOldKey = mainComponent.parent.key;
+      } else if (
+        mainComponent.parent?.type === "COMPONENT_SET" &&
+        oldParentKeys.includes(mainComponent.parent.key)
+      ) {
+        matchedOldKey = mainComponent.parent.key;
+      }
+
+      if (matchedOldKey && !matchedNodeIds.has(node.id)) {
+        matchedNodes.push({ node, matchedOldKey });
+        matchedNodeIds.add(node.id); // Add node ID to the Set
+      }
+    }
+  }
+
+  const processingPromises = [];
   // Process each component in the componentMap
   for (const component of componentMap) {
     const { oldParentKey } = component;
 
-    // Filter nodes
-    const filteredNodes: InstanceNode[] = [];
-    const nodeIds = new Set<string>(); // Set to track unique node IDs
+    const nodesForComponent = matchedNodes
+      .filter((match) => {
+        return match.matchedOldKey === oldParentKey;
+      })
+      .map((match) => match.node);
 
-    for (const node of allNodes) {
-      if (node.type === "INSTANCE") {
-        const mainComponent = await node.getMainComponentAsync();
-        if (!mainComponent) continue;
-
-        // Check ancestors
-        const shouldInclude = !(await hasAncestorWithOldKey(node));
-
-        // Only proceed if we should include this node
-        if (shouldInclude) {
-          const isMatch =
-            mainComponent.key === oldParentKey ||
-            (mainComponent.parent?.type === "COMPONENT" &&
-              mainComponent.parent.key === oldParentKey) ||
-            (mainComponent.parent?.type === "COMPONENT_SET" &&
-              mainComponent.parent.key === oldParentKey);
-
-          if (isMatch && !nodeIds.has(node.id)) {
-            filteredNodes.push(node);
-            nodeIds.add(node.id); // Add node ID to the Set
-          }
-        }
-      }
+    if (nodesForComponent.length === 0) {
+      continue;
     }
 
-    // Process the component
-    await processComponent(component, filteredNodes);
+    processingPromises.push(processComponent(component, nodesForComponent));
   }
+  await Promise.all(processingPromises);
 
   // Send messages to UI
   postMessageToUI("COMPONENT_IMAGES", {
@@ -164,10 +202,15 @@ async function processComponent(
   if (newComponent) {
     for (const node of nodes) {
       if (node.type === "INSTANCE") {
+        // optimistically start loading the images for the match
+        const oldImageSrcPromise = getImageURL(node);
+        const newImageSrcPromise = getImageURL(newComponent);
+
         const mainComponent = await node.getMainComponentAsync(); // Use async method to get main component
+
         if (mainComponent) {
-          const oldImageSrc = await getImageURL(node);
-          const newImageSrc = await getImageURL(newComponent);
+          const oldImageSrc = await oldImageSrcPromise;
+          const newImageSrc = await newImageSrcPromise;
 
           // Add component with old/new images and checked state to scannedComponents
           scannedComponents.push({
@@ -319,10 +362,10 @@ figma.ui.onmessage = async (msg) => {
   if (msg.type === "SCAN_COMPONENTS") {
     const state = msg.scanType;
     console.log("Message received from UI:", msg);
-    await scanComponents(state);
+    scanComponents(state);
   } else if (msg.type === "SWAP_COMPONENTS") {
     console.log("Swapping components...");
-    await swapComponents(msg.checkedStates);
+    swapComponents(msg.checkedStates);
   } else if (msg.type === "UPDATE_SCANNED_COMPONENTS") {
     console.log("Received updated scanned components from UI...");
     updateScannedComponents(msg.updatedComponents);
