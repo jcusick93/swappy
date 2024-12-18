@@ -68,6 +68,11 @@ export const componentMap = [
     newComponentKey: "ca79ebe2bff1fe091588e77d462ffbd780e7da04",
   },
   {
+    groupName: "Card",
+    oldParentKey: "b67af06930489f4edb3e3c66d994b680e220739e",
+    newComponentKey: "2bab3df5b6967e731c5d58518e49145f1d3649f9",
+  },
+  {
     groupName: "Checkbox",
     oldParentKey: "17f09fe65ffe566f178057eb32b745a119738f12",
     newComponentKey: "4e8c6c1964813f0f99cb0b5a3262c092bb46212e",
